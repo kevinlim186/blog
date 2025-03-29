@@ -44,19 +44,6 @@ def layout():
         showlegend=False
     ))
 
-    # S&P 500 Index Labels
-    fig.add_trace(go.Scatter(
-        x=label_df['year'],
-        y=label_df['avg_market_price'],
-        mode='markers+text',
-        name='S&P 500 Labels',
-        text=[f"{y:.0f}" for y in label_df['avg_market_price']],
-        textposition='top right',
-        marker=dict(color='#3399FF', size=6),
-        textfont=dict(size=12),
-        yaxis='y2',
-        showlegend=False
-    ))
     fig.update_layout(
         template='plotly_dark',
         plot_bgcolor='#111111',
