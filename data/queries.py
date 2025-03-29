@@ -165,11 +165,15 @@ def fetch_inflation_data():
 
             select 
                 german_bonds.date date, 
-                interpolated_german_breakeven_inflation*100 interpolated_german_breakeven_inflation, us_10_year_breakeven_inflation_rate us_breakeven_inflation,  us_ten_year_interest-us_10_year_breakeven_inflation_rate us_implied_tips, 
+                interpolated_german_breakeven_inflation*100 interpolated_german_breakeven_inflation, 
+                us_10_year_breakeven_inflation_rate us_breakeven_inflation,  
+                us_ten_year_interest-us_10_year_breakeven_inflation_rate us_implied_tips, 
                 eur_usd_fx,     
                 interpolated_yield_bond*100 interpolated_yield_bond, 
                 interpolated_yield_tips*100 interpolated_yield_tips, 
-                us_ten_year_interest
+                us_ten_year_interest,
+                interpolated_german_breakeven_inflation-us_10_year_breakeven_inflation_rate breakeven_inflation_spread, 
+                interpolated_yield_tips-us_implied_tips real_return_spread
             from german_bonds
             inner join us_inflation on (us_inflation.date=german_bonds.date)
             inner join eur_usd on (eur_usd.date=german_bonds.date)
@@ -244,6 +248,52 @@ def fetch_coporate_america_revenue_to_sp500():
             select dt year, total_revenue, avg_market_cap, avg_market_cap/total_revenue price_to_earnings
             from income
             left join weighted_price on income.dt = weighted_price.dt
+    """
+    return client.query_df(query)
+
+
+def fetch_telecom_interest_sensitive_stock():
+    client = get_clickhouse_client()
+    query = """
+    WITH stocks AS (
+        SELECT 
+            date, 
+            CASE WHEN ticker = '^GSPC' THEN 'SP500' ELSE ticker END AS ticker, 
+            close adj_close
+        FROM trading.asset_prices 
+        WHERE asset_prices.ticker IN ('T', 'VZ', 'CCOI', '^GSPC')
+            AND date >= today()- interval 1 year
+            -- AND date between '2019-04-01' and '2020-08-31'
+        ORDER BY version DESC 
+        LIMIT 1 BY ticker, date
+        ),
+
+        start_value AS (
+        SELECT 
+            ticker, 
+            argMin(adj_close, date) first_value
+        FROM stocks
+        group by ticker
+        ),
+
+        cumulative_gain as (
+
+        SELECT 
+        date, ticker, adj_close/first_value-1 cumulative_gain
+        FROM stocks
+        LEFT JOIN start_value ON start_value.ticker=stocks.ticker
+        )
+
+        SELECT 
+        date, value interest_rates, ticker, cumulative_gain*100 cumulative_gain
+        from trading.economic_calendar 
+        left join cumulative_gain on trading.economic_calendar.date = cumulative_gain.date
+        where 
+        (attribute ='us_twenty_year_interest')
+        and value>0
+        and ticker!=''
+        -- or attribute='us_consumer_price_index_all_urban_consumers'
+        order by date
     """
     return client.query_df(query)
 
