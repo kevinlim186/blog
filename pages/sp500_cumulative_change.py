@@ -29,6 +29,35 @@ def layout():
         line=dict(color="#3399FF", width=2.5, dash='dot'),
         hovertemplate='S&P 500 Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
+    # Label selected years
+    label_years = [2011, 2013, 2015, 2017, 2019, 2021, 2023]
+    label_df = df[df['year'].isin(label_years)]
+
+    # Labels for Revenue Change
+    fig.add_trace(go.Scatter(
+        x=label_df['year'],
+        y=label_df['revenue_cumulative_change'],
+        mode='markers+text',
+        name='Revenue Labels',
+        text=[f"{y:.0f}%" for y in label_df['revenue_cumulative_change']],
+        textposition='top left',
+        marker=dict(color='#00FF99', size=6),
+        textfont=dict(size=12),
+        showlegend=False
+    ))
+
+    # Labels for S&P 500 Change
+    fig.add_trace(go.Scatter(
+        x=label_df['year'],
+        y=label_df['sp500_cumulative_change'],
+        mode='markers+text',
+        name='S&P 500 Labels',
+        text=[f"{y:.0f}%" for y in label_df['sp500_cumulative_change']],
+        textposition='top right',
+        marker=dict(color='#3399FF', size=6),
+        textfont=dict(size=12),
+        showlegend=False
+    ))
 
     fig.update_layout(
         template='plotly_dark',
