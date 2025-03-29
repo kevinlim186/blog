@@ -186,68 +186,68 @@ def fetch_coporate_america_revenue_to_sp500():
     client = get_clickhouse_client()
     query = """
         with base as (
+        SELECT 
+            entity,
+            date,
+            metric / (dateDiff('day', start, end) + 1) AS allocated_metric
+        FROM (
             SELECT 
+                start,
+                end,
+                metric,
                 entity,
-                date,
-                metric / (dateDiff('day', start, end) + 1) AS allocated_metric
+                addDays(start, number) AS date
             FROM (
                 SELECT 
-                    start,
-                    end,
-                    metric,
-                    entity,
-                    addDays(start, number) AS date
-                FROM (
-                    SELECT 
-                        start, 
-                        end, 
-                        metric, 
-                        entity
-                    FROM trading.equity_fundamental 
-                    WHERE 
-                        dimension LIKE 'Revenue%'
-                        AND start >= '2007-01-01'
-                        AND form = '10-K'
-                        AND dateDiff('day', start, end) > 350
-                    ORDER BY created_at DESC, filed DESC 
-                    LIMIT 1 BY start, end, entity
-                ) AS input
-                ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
-            )
-            where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
-            ORDER BY date
-            ), 
+                    start, 
+                    end, 
+                    metric, 
+                    entity
+                FROM trading.equity_fundamental 
+                WHERE 
+                    dimension LIKE 'Revenue%'
+                    AND start >= '2007-01-01'
+                    AND form = '10-K'
+                    AND dateDiff('day', start, end) > 350
+                ORDER BY created_at DESC, filed DESC 
+                LIMIT 1 BY start, end, entity
+            ) AS input
+            ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
+        )
+        where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
+        ORDER BY date
+        ), 
 
-            income as (
-            select 
-                toYear(date) dt, 
-                count(distinct entity) entities,
-                sum(allocated_metric) total_revenue, 
-                sum(allocated_metric)/entities avg_revenue_per_entity
-            from base
-            group by dt),
+        income as (
+        select 
+            toYear(date) dt, 
+            count(distinct entity) entities,
+            sum(allocated_metric) total_revenue, 
+            sum(allocated_metric)/entities avg_revenue_per_entity
+        from base
+        group by dt),
 
-            prices as (
-            select 
-                date, cik, close, volume
-            from trading.asset_prices 
-            where 
-                ticker like '^GSPC'
-                and date>='2010-01-01'
-            order by version desc limit 1 by date),
+        prices as (
+        select 
+            date, cik, close, volume
+        from trading.asset_prices 
+        where 
+            ticker like '^GSPC'
+            and date>='2010-01-01'
+        order by version desc limit 1 by date),
 
-            weighted_price as (
-            select 
-                toYear(date) dt, 
-                avg(close*volume) avg_market_cap
-            from prices
-            group by 
-                dt
-            )
+        weighted_price as (
+        select 
+            toYear(date) dt, 
+            sum(close*volume)/sum(volume) avg_price
+        from prices
+        group by 
+            dt
+        )
 
-            select dt year, total_revenue, avg_market_cap, avg_market_cap/total_revenue price_to_earnings
-            from income
-            left join weighted_price on income.dt = weighted_price.dt
+        select income.dt year, total_revenue, avg_price avg_market_price
+        from income
+        left join weighted_price on income.dt = weighted_price.dt
     """
     return client.query_df(query)
 

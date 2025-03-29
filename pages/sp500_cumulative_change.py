@@ -5,26 +5,29 @@ from data.queries import fetch_coporate_america_revenue_to_sp500
 def layout():
     df = fetch_coporate_america_revenue_to_sp500()
 
+    # Normalize to show cumulative % change from the first year
+    df = df.sort_values('year')
+    df['revenue_cumulative_change'] = (df['total_revenue'] / df['total_revenue'].iloc[0] - 1) * 100
+    df['sp500_cumulative_change'] = (df['avg_market_price'] / df['avg_market_price'].iloc[0] - 1) * 100
+
     fig = go.Figure()
 
-    # Total Revenue
+    # Cumulative change in Total Revenue
     fig.add_trace(go.Scatter(
         x=df['year'],
-        y=df['total_revenue'],
-        name="Total Revenue",
-        yaxis="y1",
+        y=df['revenue_cumulative_change'],
+        name="Revenue Cumulative Change (%)",
         line=dict(color="#00FF99", width=2.5),
-        hovertemplate='Total Revenue: %{y:$.2s}<br>Year: %{x|%Y}<extra></extra>'
+        hovertemplate='Revenue Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
 
-    # S&P 500 Index (average market price)
+    # Cumulative change in S&P 500 Index
     fig.add_trace(go.Scatter(
         x=df['year'],
-        y=df['avg_market_price'],
-        name="S&P 500 Index",
-        yaxis="y2",
-        line=dict(color="#3399FF", width=2.5, dash="dot"),
-        hovertemplate='S&P 500: %{y:.0f}<br>Year: %{x|%Y}<extra></extra>'
+        y=df['sp500_cumulative_change'],
+        name="S&P 500 Cumulative Change (%)",
+        line=dict(color="#3399FF", width=2.5, dash='dot'),
+        hovertemplate='S&P 500 Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
 
     fig.update_layout(
@@ -35,7 +38,7 @@ def layout():
         height=600,
         margin=dict(l=40, r=60, t=60, b=100),
         title=dict(
-            text="S&P 500 vs Total Revenue of Corporate America",
+            text="Cumulative Change: S&P 500 vs Corporate America Revenue",
             x=0.01,
             xanchor='left',
             font=dict(size=22)
@@ -51,18 +54,10 @@ def layout():
             spikesnap='cursor'
         ),
 
-        yaxis=dict(  # Total Revenue
-            title="Total Revenue (USD)",
-            tickformat="$.2s",
+        yaxis=dict(
+            title="Cumulative Change (%)",
+            tickformat=".1f",
             gridcolor='#333'
-        ),
-
-        yaxis2=dict(  # S&P 500 Index
-            title="S&P 500 Index Level",
-            overlaying='y',
-            side='right',
-            position=1.0,
-            showgrid=False
         ),
 
         legend=dict(
@@ -79,6 +74,6 @@ def layout():
 
     return html.Div([
         html.Div([
-            dcc.Graph(id="sp500-vs-revenue", figure=fig),
+            dcc.Graph(id="sp500-vs-revenue-cumulative", figure=fig),
         ], className="black-container")
     ])
