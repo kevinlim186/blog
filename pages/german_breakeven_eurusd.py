@@ -71,11 +71,12 @@ def layout():
         hoverlabel=dict(namelength=-1),
         legend=dict(
             orientation='h',
-            yanchor='bottom',
-            y=1.02,
-            xanchor='right',
-            x=1
-        )
+            yanchor='top',
+            y=-0.15,  # Push further down below x-axis labels
+            xanchor='center',
+            x=0.5,
+            font=dict(size=12)
+        ),
     )
 
     return html.Div([
