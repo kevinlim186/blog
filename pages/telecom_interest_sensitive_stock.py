@@ -103,22 +103,6 @@ def layout():
 
     return html.Div([
         html.Div([
-            dcc.Graph(id="interest-vs-stock-gain", figure=fig),
-            html.Div([
-                html.Button("Download CSV", id="download-btn", n_clicks=0, style={
-                    "backgroundColor": "#FFCC00",
-                    "color": "#000",
-                    "padding": "10px 20px",
-                    "border": "none",
-                    "borderRadius": "4px",
-                    "fontWeight": "bold",
-                    "fontSize": "14px",
-                    "cursor": "pointer",
-                    "marginTop": "10px",
-                    "boxShadow": "0 2px 4px rgba(0,0,0,0.3)",
-                    "transition": "background-color 0.2s ease-in-out"
-                }),
-                dcc.Download(id="download-interest-sensitive-data")
-            ], style={"textAlign": "center"})
+            dcc.Graph(id="interest-vs-stock-gain", figure=fig)
         ], className="black-container")
     ])
