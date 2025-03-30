@@ -182,72 +182,80 @@ def fetch_inflation_data():
     return client.query_df(query)
 
 
-def fetch_coporate_america_revenue_to_sp500():
+def fetch_coporate_america_net_income_to_wilshire():
     client = get_clickhouse_client()
     query = """
         with base as (
-        SELECT 
-            entity,
-            date,
-            metric / (dateDiff('day', start, end) + 1) AS allocated_metric
-        FROM (
             SELECT 
-                start,
-                end,
-                metric,
                 entity,
-                addDays(start, number) AS date
+                date,
+                metric / (dateDiff('day', start, end) + 1) AS allocated_metric
             FROM (
                 SELECT 
-                    start, 
-                    end, 
-                    metric, 
-                    entity
-                FROM trading.equity_fundamental 
-                WHERE 
-                    dimension LIKE 'Revenue%'
-                    AND start >= '2007-01-01'
-                    AND form = '10-K'
-                    AND dateDiff('day', start, end) > 350
-                ORDER BY created_at DESC, filed DESC 
-                LIMIT 1 BY start, end, entity
-            ) AS input
-            ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
-        )
-        where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
-        ORDER BY date
-        ), 
+                    start,
+                    end,
+                    case when dimension='Investment Income, Interest and Dividend' then  -metric else metric end metric,
+                    entity,
+                    addDays(start, number) AS date
+                FROM (
+                    SELECT 
+                        start, 
+                        end, 
+                        dimension,
+                        metric, 
+                        entity
+                    FROM trading.equity_fundamental 
+                    WHERE 
+                        (
+                            dimension LIKE 'Net Income (Loss) Attributable to Parent'
+                            or 
+                            dimension LIKE 'Investment Income, Interest and Dividend'
+                        )	
+                        AND start >= '2007-01-01'
+                        AND form = '10-K'
+                        and entity like '%Apple%'
+                        AND dateDiff('day', start, end) > 350
+                    
+                    ORDER BY created_at DESC, filed DESC 
+                    LIMIT 1 BY start, end, entity, dimension
+                ) AS input
+                ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
+            
+            )
+            where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
+            ORDER BY date
+            ),
+            income as (
+            select 
+                toYear(date) dt, 
+                count(distinct entity) entities,
+                sum(allocated_metric) total_net_income, 
+                sum(allocated_metric)/entities avg_revenue_per_entity
+            from base
+            group by dt),
 
-        income as (
-        select 
-            toYear(date) dt, 
-            count(distinct entity) entities,
-            sum(allocated_metric) total_revenue, 
-            sum(allocated_metric)/entities avg_revenue_per_entity
-        from base
-        group by dt),
+            prices as (
+            select 
+                date, cik, close, volume
+            from trading.asset_prices 
+            where 
+                ticker like '^W5000'
+                and date>='2010-01-01'
+            order by version desc limit 1 by date),
 
-        prices as (
-        select 
-            date, cik, close, volume
-        from trading.asset_prices 
-        where 
-            ticker like '^GSPC'
-            and date>='2010-01-01'
-        order by version desc limit 1 by date),
+            weighted_price as (
+            select 
+                toYear(date) dt, 
+                avg(close) avg_price
+            from prices
+            group by 
+                dt
+            )
 
-        weighted_price as (
-        select 
-            toYear(date) dt, 
-            sum(close*volume)/sum(volume) avg_price
-        from prices
-        group by 
-            dt
-        )
+            select income.dt year, total_net_income, avg_price
+            from income
+            left join weighted_price on income.dt = weighted_price.dt
 
-        select income.dt year, total_revenue, avg_price avg_market_price
-        from income
-        left join weighted_price on income.dt = weighted_price.dt
     """
     return client.query_df(query)
 

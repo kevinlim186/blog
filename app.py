@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, sp500_total_revenue, german_breakeven_eurusd,telecom_interest_sensitive_stock, sp500_cumulative_change
+from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income
 from flask_caching import Cache
 from flask import request
 
@@ -29,8 +29,8 @@ def german_10_year_breakeven_inflation_cache():
     return german_10_year_breakeven_inflation.layout()
 
 @cache.memoize()
-def sp500_total_revenue_cache():
-    return sp500_total_revenue.layout()
+def wilshire_net_income_cache():
+    return wilshire_net_income.layout()
 
 @cache.memoize()
 def german_breakeven_eurusd_cache():
@@ -41,8 +41,8 @@ def telecom_interest_sensitive_stock_cache():
     return telecom_interest_sensitive_stock.layout()
 
 @cache.memoize()
-def sp500_cumulative_change_cache():
-    return sp500_cumulative_change.layout()
+def wilshire_cumulative_change_cache():
+    return wilshire_cumulative_change.layout()
 
 
 
@@ -54,14 +54,14 @@ def refresh_cache():
     german_10_year_inflation_protected_rate_cache()
     cache.delete_memoized(german_10_year_breakeven_inflation_cache)
     german_10_year_breakeven_inflation_cache()
-    cache.delete_memoized(sp500_total_revenue_cache)
-    sp500_total_revenue_cache()
+    cache.delete_memoized(wilshire_net_income_cache)
+    wilshire_net_income_cache()
     cache.delete_memoized(german_breakeven_eurusd_cache)
     german_breakeven_eurusd_cache()
     cache.delete_memoized(telecom_interest_sensitive_stock_cache)
     telecom_interest_sensitive_stock_cache()
-    cache.delete_memoized(sp500_cumulative_change_cache)
-    sp500_cumulative_change_cache()
+    cache.delete_memoized(wilshire_cumulative_change_cache)
+    wilshire_cumulative_change_cache()
     
     return "Cache has been refreshed", 200
 
@@ -73,14 +73,14 @@ def display_page(pathname):
         return german_10_year_inflation_protected_rate_cache()
     elif pathname == '/german-10-year-breakeven-inflation':
         return german_10_year_breakeven_inflation_cache()
-    elif pathname == '/sp500-total-revenue':
-        return sp500_total_revenue_cache()
+    elif pathname == '/wilshire-total-net-income':
+        return wilshire_net_income_cache()
     elif pathname == '/german-inflation-real-return-spread-eurusd':
         return german_breakeven_eurusd_cache()
     elif pathname == '/telecom-interest-sensitive-stock':
         return telecom_interest_sensitive_stock_cache()
-    elif pathname == '/sp500-cumulative-change':
-        return sp500_cumulative_change_cache()
+    elif pathname == '/wilshire-5000-cumulative-change':
+        return wilshire_cumulative_change_cache()
 
 
 if __name__ == '__main__':
