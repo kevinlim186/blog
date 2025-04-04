@@ -51,10 +51,13 @@ def us_companies_cashflow_tax_cache():
 def refresh_cache():
     cache.delete_memoized(fetch_inflation_data)
     fetch_inflation_data()
+    time.sleep(3)
     cache.delete_memoized(fetch_coporate_america_net_income_to_wilshire)
     fetch_coporate_america_net_income_to_wilshire()
+    time.sleep(3)
     cache.delete_memoized(fetch_telecom_interest_sensitive_stock)
     fetch_telecom_interest_sensitive_stock()
+    time.sleep(3)
     cache.delete_memoized(get_cash_flow_tax_us_companies)
     get_cash_flow_tax_us_companies()
 
