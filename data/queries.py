@@ -1,5 +1,7 @@
 from .db_client import get_clickhouse_client
+from cache import cache
 
+@cache.memoize()
 def fetch_inflation_data():
     client = get_clickhouse_client()
     query = """
@@ -181,6 +183,7 @@ def fetch_inflation_data():
     """
     return client.query_df(query)
 
+@cache.memoize()
 def fetch_coporate_america_net_income_to_wilshire():
     client = get_clickhouse_client()
     query = """
@@ -258,6 +261,7 @@ def fetch_coporate_america_net_income_to_wilshire():
     """
     return client.query_df(query)
 
+@cache.memoize()
 def fetch_telecom_interest_sensitive_stock():
     client = get_clickhouse_client()
     query = """
