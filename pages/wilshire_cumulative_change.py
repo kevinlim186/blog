@@ -76,24 +76,27 @@ def layout():
         hovermode='x unified',
 
         xaxis=dict(
-            title="Year",
-            tickformat="%Y",
-            gridcolor='#333',
-            showspikes=True,
-            spikemode='across',
-            spikesnap='cursor',
-            titlefont=dict(size=20),
-            tickfont=dict(size=16)
-        ),
+                title=dict(
+                    text="Year",
+                    font=dict(size=20)
+                ),
+                tickformat="%Y",
+                gridcolor='#333',
+                showspikes=True,
+                spikemode='across',
+                spikesnap='cursor',
+                tickfont=dict(size=16)
+            ),
 
         yaxis=dict(
-            title="Cumulative Change (%)",
+            title=dict(
+                text="Cumulative Change (%)",
+                font=dict(size=20)
+            ),
             tickformat=".1f",
             gridcolor='#333',
-            titlefont=dict(size=20),
             tickfont=dict(size=16)
         ),
-
         legend=dict(
             orientation='h',
             yanchor='top',
