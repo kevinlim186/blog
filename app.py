@@ -3,6 +3,7 @@ from pages import german_10_year_breakeven_inflation, german_10_year_inflation_p
 from cache import cache
 from flask import request
 from data.queries import *
+import time
 
 app = Dash(__name__,  suppress_callback_exceptions=True)
 cache.init_app(app.server) 
@@ -48,23 +49,15 @@ def us_companies_cashflow_tax_cache():
 
 @app.server.route('/refresh_cache', methods=['POST'])
 def refresh_cache():
-    cache.delete_memoized(german_10_year_bonds_cache)
-    german_10_year_bonds_cache()
-    cache.delete_memoized(german_10_year_inflation_protected_rate_cache)
-    german_10_year_inflation_protected_rate_cache()
-    cache.delete_memoized(german_10_year_breakeven_inflation_cache)
-    german_10_year_breakeven_inflation_cache()
-    cache.delete_memoized(wilshire_net_income_cache)
-    wilshire_net_income_cache()
-    cache.delete_memoized(german_breakeven_eurusd_cache)
-    german_breakeven_eurusd_cache()
-    cache.delete_memoized(telecom_interest_sensitive_stock_cache)
-    telecom_interest_sensitive_stock_cache()
-    cache.delete_memoized(wilshire_cumulative_change_cache)
-    wilshire_cumulative_change_cache()
-    cache.delete_memoized(us_companies_cashflow_tax_cache)
-    us_companies_cashflow_tax_cache()
-    
+    cache.delete_memoized(fetch_inflation_data)
+    fetch_inflation_data()
+    cache.delete_memoized(fetch_coporate_america_net_income_to_wilshire)
+    fetch_coporate_america_net_income_to_wilshire()
+    cache.delete_memoized(fetch_telecom_interest_sensitive_stock)
+    fetch_telecom_interest_sensitive_stock()
+    cache.delete_memoized(get_cash_flow_tax_us_companies)
+    get_cash_flow_tax_us_companies()
+
     return "Cache has been refreshed", 200
 
 @app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
