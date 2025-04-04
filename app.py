@@ -1,8 +1,8 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income
+from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax
 from flask_caching import Cache
 from flask import request
-
+from data.queries import *
 
 app = Dash(__name__,  suppress_callback_exceptions=True)
 cache = Cache(app.server, config={
@@ -18,31 +18,43 @@ app.layout = html.Div([
 # Cache the layouts
 @cache.memoize()
 def german_10_year_bonds_cache():
+    fetch_inflation_data()
     return german_10_year_bonds.layout()
 
 @cache.memoize()
 def german_10_year_inflation_protected_rate_cache():
+    fetch_inflation_data()
     return german_10_year_inflation_protected_rate.layout()
 
 @cache.memoize()
 def german_10_year_breakeven_inflation_cache():
+    fetch_inflation_data()
     return german_10_year_breakeven_inflation.layout()
 
 @cache.memoize()
 def wilshire_net_income_cache():
+    fetch_coporate_america_net_income_to_wilshire()
     return wilshire_net_income.layout()
 
 @cache.memoize()
 def german_breakeven_eurusd_cache():
+    fetch_inflation_data()
     return german_breakeven_eurusd.layout()
 
 @cache.memoize()
 def telecom_interest_sensitive_stock_cache():
+    fetch_telecom_interest_sensitive_stock()
     return telecom_interest_sensitive_stock.layout()
 
 @cache.memoize()
 def wilshire_cumulative_change_cache():
+    wilshire_cumulative_change()
     return wilshire_cumulative_change.layout()
+
+@cache.memoize()
+def us_companies_cashflow_tax_cache():
+    get_cash_flow_tax_us_companies()
+    return us_companies_cashflow_tax.layout()
 
 
 
@@ -62,6 +74,8 @@ def refresh_cache():
     telecom_interest_sensitive_stock_cache()
     cache.delete_memoized(wilshire_cumulative_change_cache)
     wilshire_cumulative_change_cache()
+    cache.delete_memoized(us_companies_cashflow_tax_cache)
+    us_companies_cashflow_tax_cache()
     
     return "Cache has been refreshed", 200
 
@@ -81,6 +95,8 @@ def display_page(pathname):
         return telecom_interest_sensitive_stock_cache()
     elif pathname == '/wilshire-5000-cumulative-change':
         return wilshire_cumulative_change_cache()
+    elif pathname == '/us-companies-cashflow-tax':
+        return us_companies_cashflow_tax_cache()
 
 
 if __name__ == '__main__':

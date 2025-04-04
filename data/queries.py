@@ -181,7 +181,6 @@ def fetch_inflation_data():
     """
     return client.query_df(query)
 
-
 def fetch_coporate_america_net_income_to_wilshire():
     client = get_clickhouse_client()
     query = """
@@ -259,7 +258,6 @@ def fetch_coporate_america_net_income_to_wilshire():
     """
     return client.query_df(query)
 
-
 def fetch_telecom_interest_sensitive_stock():
     client = get_clickhouse_client()
     query = """
@@ -305,3 +303,91 @@ def fetch_telecom_interest_sensitive_stock():
     """
     return client.query_df(query)
 
+def get_cash_flow_tax_us_companies():
+    client = get_clickhouse_client()
+    query = '''
+        with base as (
+        SELECT 
+            entity,
+            date,
+            dimension,
+            id,
+            metric / (dateDiff('day', start, end) + 1) AS allocated_metric
+        FROM (
+            SELECT 
+                start,
+                end,
+                dimension,
+                metric,
+                entity,
+                id,
+                addDays(start, number) AS date
+            FROM (
+                SELECT 
+                    start, 
+                    end, 
+                    dimension,
+                    metric, 
+                    entity, 
+                    id
+                FROM trading.equity_fundamental 
+                WHERE 
+                    (
+                        dimension LIKE 'Income Taxes Paid, Net'
+                        or 
+                        dimension LIKE '%Net Cash Provided by (Used in) Operating Activities, Continuing Operations%'
+                        or 
+                        dimension like  'Net Cash Provided by (Used in) Operating Activities'
+                        or 
+                        dimension like 'Income Taxes Paid'
+                    )	
+                    AND id !='707605' -- faulty data
+                    AND start >= '2007-01-01'
+                    AND form = '10-K'
+                    AND dateDiff('day', start, end) > 350
+                ORDER BY created_at DESC, filed DESC 
+                LIMIT 1 BY start, end, entity, dimension
+            ) AS input
+            ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
+        
+        )
+        where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
+        ORDER BY date
+        ),
+
+        orgs as (
+        select 
+            cik, ownerOrg, category
+        from trading.equity_companies
+        order by created_at 
+        limit 1 by cik 
+
+        ),
+
+        summary as (
+
+        select 
+            toStartOfYear(date) dt,
+            id,
+            dimension,
+            sum(allocated_metric) allocated_metric
+        from base
+        group by dt, dimension, id
+        )
+
+        select 
+            toYear(dt) year,
+            replaceRegexpOne(ownerOrg, '^\\d+\\s*', '') category, 
+            sumIf(allocated_metric, dimension like '%Income Taxes Paid%') taxes_paid,
+            sumIf(allocated_metric, dimension like '%Operating Activities%') cash_flow, 
+            taxes_paid/cash_flow tax_rate
+        from summary 
+        left join orgs on summary.id=orgs.cik
+        where category!=''
+        group by 
+            year, 
+            category
+
+    '''
+    
+    return client.query_df(query)

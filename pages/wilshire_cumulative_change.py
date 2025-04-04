@@ -12,7 +12,7 @@ def layout():
 
     fig = go.Figure()
 
-    # Cumulative change in Total Revenue
+    # Cumulative change in Total Net Income
     fig.add_trace(go.Scatter(
         x=df['year'],
         y=df['total_net_income_change'],
@@ -21,7 +21,7 @@ def layout():
         hovertemplate='Net Income Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
 
-    # Cumulative change in S&P 500 Index
+    # Cumulative change in Wilshire 5000
     fig.add_trace(go.Scatter(
         x=df['year'],
         y=df['willshire5000_cumulative_change'],
@@ -29,33 +29,34 @@ def layout():
         line=dict(color="#3399FF", width=2.5, dash='dot'),
         hovertemplate='Wilshire 5000 Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
+
     # Label selected years
     label_years = [2011, 2013, 2015, 2017, 2019, 2021, 2023]
     label_df = df[df['year'].isin(label_years)]
 
-    # Labels for Revenue Change
+    # Labels for Net Income
     fig.add_trace(go.Scatter(
         x=label_df['year'],
         y=label_df['total_net_income_change'],
         mode='markers+text',
         name='Net Income Labels',
         text=[f"{y:.0f}%" for y in label_df['total_net_income_change']],
-        textposition='top left',
-        marker=dict(color='#00FF99', size=6),
-        textfont=dict(size=12),
+        textposition='top center',
+        marker=dict(color='#00FF99', size=10),
+        textfont=dict(size=22),
         showlegend=False
     ))
 
-    # Labels for S&P 500 Change
+    # Labels for Wilshire 5000
     fig.add_trace(go.Scatter(
         x=label_df['year'],
         y=label_df['willshire5000_cumulative_change'],
         mode='markers+text',
         name='Wilshire 5000 Labels',
         text=[f"{y:.0f}%" for y in label_df['willshire5000_cumulative_change']],
-        textposition='top right',
-        marker=dict(color='#3399FF', size=6),
-        textfont=dict(size=12),
+        textposition='top center',
+        marker=dict(color='#3399FF', size=10),
+        textfont=dict(size=22),
         showlegend=False
     ))
 
@@ -64,13 +65,13 @@ def layout():
         plot_bgcolor='#111111',
         paper_bgcolor='#111111',
         font=dict(color='white', family='Arial'),
-        height=600,
-        margin=dict(l=40, r=60, t=60, b=100),
+        height=900,  # Pinterest-friendly vertical size
+        margin=dict(l=60, r=60, t=100, b=120),
         title=dict(
-            text="Cumulative Change: Wilshire 5000 vs Corporate America Net Income",
+            text="📊 Corporate America's Net Income vs Wilshire 5000 Growth (2010–2023)",
             x=0.01,
             xanchor='left',
-            font=dict(size=22)
+            font=dict(size=20)  # smaller Pinterest-friendly title
         ),
         hovermode='x unified',
 
@@ -80,13 +81,17 @@ def layout():
             gridcolor='#333',
             showspikes=True,
             spikemode='across',
-            spikesnap='cursor'
+            spikesnap='cursor',
+            titlefont=dict(size=20),
+            tickfont=dict(size=16)
         ),
 
         yaxis=dict(
             title="Cumulative Change (%)",
             tickformat=".1f",
-            gridcolor='#333'
+            gridcolor='#333',
+            titlefont=dict(size=20),
+            tickfont=dict(size=16)
         ),
 
         legend=dict(
@@ -95,7 +100,7 @@ def layout():
             y=-0.2,
             xanchor='center',
             x=0.5,
-            font=dict(size=12)
+            font=dict(size=20)
         ),
 
         hoverlabel=dict(namelength=-1)
