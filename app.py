@@ -48,7 +48,7 @@ def telecom_interest_sensitive_stock_cache():
 
 @cache.memoize()
 def wilshire_cumulative_change_cache():
-    wilshire_cumulative_change()
+    fetch_coporate_america_net_income_to_wilshire()
     return wilshire_cumulative_change.layout()
 
 @cache.memoize()
