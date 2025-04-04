@@ -64,7 +64,7 @@ def layout():
             'amount': '',
             'category': 'Industry'
         },
-        title=f'Operating Cash Flow and Taxes Paid by U.S. Industry (2010–{max_year})',
+        title=f'Operating Cash Flow and Taxes Paid by U.S. Industry',
         barmode='stack',
         height=900
     )
