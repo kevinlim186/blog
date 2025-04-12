@@ -4,48 +4,62 @@ from data.queries import fetch_capital_expenditure_by_industry
 import dash
 import pandas as pd
 import numpy as np
-
+import plotly.graph_objects as go
 
 def layout():
     df = fetch_capital_expenditure_by_industry()
 
-    # Clean + filter
+    # Filter and reshape
     df = df[(df['year'] >= 2010) & (df['category'] != 'Crypto Assets')]
     df['capital_expenditure_b'] = df['capital_expenditure'] / 1e9
 
-    heatmap_data = df.pivot(index='category', columns='year', values='capital_expenditure_b')
+    rename_map = {
+        'Industrial Applications and Services': 'Industrial',
+        'Energy & Transportation': 'Energy/Transport',
+        'Real Estate & Construction': 'Real Estate',
+        'Trade & Services': 'Trade',
+        'Life Sciences': 'LifeSci',
+        'Technology': 'Tech',
+        'Manufacturing': 'Mfg',
+        'Finance': 'Finance'
+    }
+    df['category'] = df['category'].map(rename_map).fillna(df['category'])
 
-    # Clip scale
+    heatmap_data = df.pivot(index='category', columns='year', values='capital_expenditure_b')
     zmin = np.nanpercentile(heatmap_data.values, 5)
     zmax = np.nanpercentile(heatmap_data.values, 95)
 
-    fig = px.imshow(
-        heatmap_data,
-        labels=dict(x="Year", y="Industry", color="CapEx ($B)"),
+    fig = go.Figure(data=go.Heatmap(
+        z=heatmap_data.values,
         x=heatmap_data.columns,
         y=heatmap_data.index,
-        color_continuous_scale='Viridis',
-        aspect="auto",
-        title="Total Capital Expenditures by Industry (in Billions)",
+        colorscale='Viridis',
         zmin=zmin,
-        zmax=zmax
-    )
+        zmax=zmax,
+        colorbar=dict(
+            title="CapEx ($B)",
+            orientation="h",     # Horizontal
+            x=0.5,               # Center horizontally
+            xanchor="center",
+            y=-0.3,              # Push below the x-axis
+            len=1.0,             # Full width
+            thickness=12         # Slim for aesthetic
+        ),
+        hovertemplate="Industry: %{y}<br>Year: %{x}<br>CapEx: %{z:.1f}B<extra></extra>"
+    ))
 
-    fig.update_traces(
-        hovertemplate="Industry: %{y}<br>Year: %{x}<br>CapEx: %{z:.1f}B<extra></extra>",
-        showscale=True
-    )
     fig.update_layout(
         template='plotly_dark',
-        margin=dict(l=40, r=30, t=60, b=60),
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
+        title="Total Capital Expenditures by Industry (in Billions)",
+        title_x=0.01,
+        margin=dict(l=40, r=30, t=60, b=100),
         font=dict(color='white', family='Arial'),
-        title=dict(x=0.01, xanchor='left', font=dict(size=22))
+        plot_bgcolor='#111111',
+        paper_bgcolor='#111111'
     )
 
     return html.Div([
         html.Div([
-            dcc.Graph(id="industry-capex-total-heatmap", figure=fig)
-        ], className="black-container"),
+            dcc.Graph(id="industry-capex-total-heatmap", figure=fig, config={"responsive": True})
+        ], className="black-container", style={"overflowX": "auto", "padding": "1rem"})
     ])
