@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax
+from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure
 from cache import cache
 from flask import request
 from data.queries import *
@@ -45,8 +45,13 @@ def wilshire_cumulative_change_cache():
 def us_companies_cashflow_tax_cache():
     return us_companies_cashflow_tax.layout()
 
+# @cache.memoize()
+def capital_expenditure_cache():
+    return capital_expenditure.layout()
 
 
+
+# Cache database queries.
 @app.server.route('/refresh_cache', methods=['POST'])
 def refresh_cache():
     cache.delete_memoized(fetch_inflation_data)
@@ -60,6 +65,10 @@ def refresh_cache():
     time.sleep(3)
     cache.delete_memoized(get_cash_flow_tax_us_companies)
     get_cash_flow_tax_us_companies()
+    # cache.delete_memoized(fetch_capital_expenditure_by_industry)
+    # fetch_capital_expenditure_by_industry()
+
+
 
     return "Cache has been refreshed", 200
 
@@ -81,6 +90,8 @@ def display_page(pathname):
         return wilshire_cumulative_change_cache()
     elif pathname == '/us-companies-cashflow-tax':
         return us_companies_cashflow_tax_cache()
+    elif pathname == '/capital-expenditure':
+        return capital_expenditure_cache()
 
 
 if __name__ == '__main__':
