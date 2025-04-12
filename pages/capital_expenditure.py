@@ -24,6 +24,7 @@ def layout():
     df['category'] = df['category'].map(rename_map).fillna(df['category'])
     df['category'] = df['category'].map(lambda x: f"{x}   ")
     heatmap_data = df.pivot(index='category', columns='year', values='capital_expenditure_b')
+    heatmap_data = heatmap_data.sort_index(ascending=False)  
     zmin = np.nanpercentile(heatmap_data.values, 5)
     zmax = np.nanpercentile(heatmap_data.values, 95)
 
@@ -62,8 +63,14 @@ def layout():
         )
     )
 
+
     return html.Div([
         html.Div([
-            dcc.Graph(id="industry-capex-total-heatmap", figure=fig, config={"responsive": True})
-        ], className="black-container", style={"overflowX": "auto", "padding": "1rem"})
+            dcc.Graph(
+                id="industry-capex-total-heatmap",
+                figure=fig,
+                config={"responsive": True},
+                style={"width": "100%", "height": "100%"}
+            )
+        ], className="black-container", style={"width": "100%", "maxWidth": "1100px", "margin": "0 auto", "overflowX": "auto", "padding": "0"})
     ])
