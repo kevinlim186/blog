@@ -1,8 +1,6 @@
-from dash import html, dcc, Input, Output, callback
+from dash import html, dcc,callback
 import plotly.express as px
 from data.queries import fetch_capital_expenditure_by_industry
-import dash
-import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
@@ -24,7 +22,7 @@ def layout():
         'Finance': 'Finance'
     }
     df['category'] = df['category'].map(rename_map).fillna(df['category'])
-
+    df['category'] = df['category'].map(lambda x: f"{x}   ")
     heatmap_data = df.pivot(index='category', columns='year', values='capital_expenditure_b')
     zmin = np.nanpercentile(heatmap_data.values, 5)
     zmax = np.nanpercentile(heatmap_data.values, 95)
@@ -38,12 +36,12 @@ def layout():
         zmax=zmax,
         colorbar=dict(
             title="CapEx ($B)",
-            orientation="h",     # Horizontal
-            x=0.5,               # Center horizontally
+            orientation="h",
+            x=0.5,
             xanchor="center",
-            y=-0.3,              # Push below the x-axis
-            len=1.0,             # Full width
-            thickness=12         # Slim for aesthetic
+            y=-0.3,
+            len=1.0,         # full width
+            thickness=12
         ),
         hovertemplate="Industry: %{y}<br>Year: %{x}<br>CapEx: %{z:.1f}B<extra></extra>"
     ))
@@ -52,10 +50,16 @@ def layout():
         template='plotly_dark',
         title="Total Capital Expenditures by Industry (in Billions)",
         title_x=0.01,
-        margin=dict(l=40, r=30, t=60, b=100),
+        margin=dict(l=120, r=30, t=60, b=120),  # wider left margin
         font=dict(color='white', family='Arial'),
         plot_bgcolor='#111111',
-        paper_bgcolor='#111111'
+        paper_bgcolor='#111111',
+        yaxis=dict(
+            ticklabelposition="outside left",
+            tickfont=dict(size=13),              # optional: adjust font size
+            title=dict(text="Industry", standoff=40),  # forces spacing
+            automargin=False
+        )
     )
 
     return html.Div([
