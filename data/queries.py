@@ -171,7 +171,7 @@ def fetch_inflation_data():
                 us_10_year_breakeven_inflation_rate us_breakeven_inflation,  
                 us_ten_year_interest-us_10_year_breakeven_inflation_rate us_implied_tips, 
                 eur_usd_fx,     
-                interpolated_yield_bond*100 interpolated_yield_bond, 
+                interpolated_yield_bond*100 interpolated_yield_bond,  
                 interpolated_yield_tips*100 interpolated_yield_tips, 
                 us_ten_year_interest,
                 interpolated_german_breakeven_inflation-us_10_year_breakeven_inflation_rate breakeven_inflation_spread, 
@@ -430,14 +430,10 @@ def fetch_capital_expenditure_by_industry():
                     (
                         dimension= 'Payments to Acquire Property, Plant, and Equipment'
                         or 
-                        dimension LIKE '%Net Cash Provided by (Used in) Operating Activities, Continuing Operations%'
-                        or 
-                        dimension like  'Net Cash Provided by (Used in) Operating Activities'
-                        or 
                         dimension like 'Payments to Acquire Intangible Assets'
                     )	
                     AND id !='707605' -- faulty data
-                    AND start >= '2007-01-01'
+                    AND start >= '2009-01-01'
                     AND form = '10-K'
                     AND dateDiff('day', start, end) > 350
                 ORDER BY created_at DESC, filed DESC 
@@ -448,6 +444,29 @@ def fetch_capital_expenditure_by_industry():
         )
         where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
         ORDER BY date
+        ),
+        
+        inflation_adjustment as (
+	        select 
+				year, 
+				value,
+				exp(cumulative_multiplier) inflation_adjustment
+			from (
+			SELECT 
+			    toYear(date) AS year, 
+			    value / 100 AS value,
+			    sum(log(1 + value )) OVER (ORDER BY date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_multiplier
+			FROM (
+			    SELECT *
+			    FROM trading.economic_calendar
+			    WHERE 
+			        attribute = 'us_inflation_yearly'
+			        AND toYear(date) >= 2009
+			    ORDER BY version DESC
+			    LIMIT 1 BY date, attribute
+			))
+			ORDER BY year ASC
+        
         ),
 
         orgs as (
@@ -474,10 +493,11 @@ def fetch_capital_expenditure_by_industry():
             toYear(dt) year,
             replaceRegexpOne(ownerOrg, '^\\d+\\s*', '') category, 
             sumIf(allocated_metric, dimension like '%Payments%') capital_expenditure,
-            sumIf(allocated_metric, dimension like '%Operating Activities%') cash_flow, 
-            capital_expenditure/cash_flow investment_rate
+            capital_expenditure/max(inflation_adjustment.inflation_adjustment) inflation_adjusted_capital_expenditure,
+            max(inflation_adjustment.inflation_adjustment)-1 cumulative_inflation_adjustment
         from summary 
         left join orgs on summary.id=orgs.cik
+        left join inflation_adjustment on toYear(summary.dt)=inflation_adjustment.year
         where category!=''
         group by 
             year, 
