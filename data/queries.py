@@ -307,6 +307,7 @@ def fetch_telecom_interest_sensitive_stock():
     """
     return client.query_df(query)
 
+@cache.memoize()
 def get_cash_flow_tax_us_companies():
     client = get_clickhouse_client()
     query = '''
