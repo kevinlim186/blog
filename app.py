@@ -1,9 +1,11 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd
+from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt
 from cache import cache
 from flask import request
-from data.queries import *
+import data.queries as dq
 import time
+import inspect
+from flask import Response
 
 app = Dash(__name__,  suppress_callback_exceptions=True)
 cache.init_app(app.server) 
@@ -53,27 +55,31 @@ def capital_expenditure_cache():
 def interest_rate_differential_eur_usd_cache():
     return interest_rate_differential_eur_usd.layout()
 
+# @cache.memoize()
+def free_cash_flow_to_debt_cache():
+    return free_cash_flow_to_debt.layout()
+
+
 # Cache database queries.
 @app.server.route('/refresh_cache', methods=['POST'])
 def refresh_cache():
-    cache.delete_memoized(fetch_inflation_data)
-    fetch_inflation_data()
-    time.sleep(3)
-    cache.delete_memoized(fetch_coporate_america_net_income_to_wilshire)
-    fetch_coporate_america_net_income_to_wilshire()
-    time.sleep(3)
-    cache.delete_memoized(fetch_telecom_interest_sensitive_stock)
-    fetch_telecom_interest_sensitive_stock()
-    time.sleep(3)
-    cache.delete_memoized(get_cash_flow_tax_us_companies)
-    get_cash_flow_tax_us_companies()
-    cache.delete_memoized(fetch_capital_expenditure_by_industry)
-    fetch_capital_expenditure_by_industry()
-    cache.delete_memoized(interest_rate_differential_eur_usd_cache)
-    interest_rate_differential_eur_usd_cache()
+    import inspect
+    import data.queries as dq
 
+    all_funcs = [
+        func for name, func in inspect.getmembers(dq, inspect.isfunction)
+        if func.__module__ == dq.__name__
+    ]
 
-    return "Cache has been refreshed", 200
+    for func in all_funcs:
+        cache.delete_memoized(func)
+        try:
+            func()
+        except Exception as e:
+            print(f"⚠️  {func.__name__}() failed: {e}")
+        time.sleep(3)
+
+    return Response("Cache has been refreshed", status=200)
 
 @app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
 def display_page(pathname):
@@ -97,6 +103,8 @@ def display_page(pathname):
         return capital_expenditure_cache()
     elif pathname == '/interest-rate-differential-eur-usd':
         return interest_rate_differential_eur_usd_cache()
+    elif pathname == '/free-cash-flow-to-debt':
+        return free_cash_flow_to_debt_cache()
 
 
 if __name__ == '__main__':

@@ -505,3 +505,112 @@ def fetch_capital_expenditure_by_industry():
             category
     """
     return client.query_df(query)
+
+
+@cache.memoize()
+def fetch_debt_free_cash_flow_by_industry():
+    client = get_clickhouse_client()
+    query = """
+    with base as (
+        SELECT 
+            entity,
+            date,
+            case  
+            	when t.dimension  like '%Provided%' or dimension like '%Payments%' then 'Free Cashflow'
+            	when t.dimension like '%Debt%'  then 'Long Term Debt'
+            end dimension,
+            id,
+            case
+            	when  t.dimension  like '%Provided%'  then metric / (dateDiff('day', start, end) + 1) 
+            	when  t.dimension  like '%Payments%'  then -metric / (dateDiff('day', start, end) + 1) 
+            	else metric
+            end AS allocated_metric
+        FROM (
+            SELECT 
+                start,
+                end,
+                dimension,
+                metric,
+                entity,
+                id,
+                addDays(start, number) AS date
+            FROM (
+                SELECT 
+                    start, 
+                    end, 
+                    dimension,
+                    metric, 
+                    entity, 
+                    id
+                FROM trading.equity_fundamental 
+                WHERE 
+                    (
+		                        ((dimension LIKE '%Net Cash Provided by (Used in) Operating Activities, Continuing Operations%'
+		                        or 
+		                        dimension like  'Net Cash Provided by (Used in) Operating Activities'
+		                        or
+		                        dimension= 'Payments to Acquire Property, Plant, and Equipment'
+		                        or 
+		                        dimension like 'Payments to Acquire Intangible Assets'
+		                        )
+		                        and    dateDiff('day', start, end) > 350
+                    			)
+                    			
+								or 
+									(LOWER(dimension) IN (
+									    'long-term debt, gross',
+									    'long-term debt, current maturities',
+									    'short-term debt'
+									  )  and start='1970-01-01')
+									                     
+                    )	
+--                    and entity like '%Apple Inc.%'
+                    AND id !='707605' -- faulty data
+                    AND end >= '2009-01-01'
+                    AND form = '10-K'
+                ORDER BY created_at DESC, filed DESC 
+                LIMIT 1 BY start, end, entity, dimension
+            ) AS input
+            ARRAY JOIN range(CAST(dateDiff('day', start, end) + 1 AS UInt64)) AS number
+        
+        ) t
+        where toYear(date)<=toYear(today())-2 and toYear(date)>=2010
+        ORDER BY date
+        ),
+        orgs as (
+        select 
+            cik, ownerOrg, category
+        from trading.equity_companies
+        order by created_at 
+        limit 1 by cik 
+
+        ),
+
+        summary as (
+
+        select 
+            toStartOfYear(date) dt,
+            id,
+            dimension,
+            case 
+            	when dimension='Free Cashflow' then sum(allocated_metric) 
+            	else max(allocated_metric) 
+            end allocated_metric
+        from base
+        group by dt, dimension, id
+        )
+
+        select 
+            toYear(dt) year,
+            replaceRegexpOne(ownerOrg, '^\\d+\\s*', '') category, 
+            sumIf(allocated_metric, dimension like '%Long Term Debt%')/uniq(id) avg_long_term_debt,
+            sumIf(allocated_metric, dimension like '%Free Cashflow%')/uniq(id)  avg_free_cash_flow, 
+            avg_free_cash_flow/avg_long_term_debt  free_cash_flow_to_long_term_debt
+        from summary 
+        left join orgs on summary.id=orgs.cik
+        where category!=''
+        group by 
+            year, 
+            category
+    """
+    return client.query_df(query)
