@@ -42,7 +42,7 @@ def layout():
     fig.update_layout(
         template='plotly_dark',
         title_x=0.01,
-        margin=dict(l=80, r=30, t=60, b=80),
+        margin=dict(l=0, r=0, t=60, b=50),
         font=dict(color='white', family='Arial'),
         plot_bgcolor='#111111',
         paper_bgcolor='#111111',
@@ -60,7 +60,7 @@ def layout():
 
     # Add ONE y-axis label manually
     fig.add_annotation(
-        x=-0.1,  # slight left offset
+        x=-0.2,  # slight left offset
         y=0.5,    # center vertically
         text="FCF / Long-Term Debt",
         textangle=-90,
