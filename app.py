@@ -45,7 +45,7 @@ def wilshire_cumulative_change_cache():
 def us_companies_cashflow_tax_cache():
     return us_companies_cashflow_tax.layout()
 
-# @cache.memoize()
+@cache.memoize()
 def capital_expenditure_cache():
     return capital_expenditure.layout()
 
