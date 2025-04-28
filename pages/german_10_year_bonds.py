@@ -12,7 +12,7 @@ def layout():
         title='German Bond Rate at Constant 10-Year',
         labels={
             'date': 'Date',
-            'interpolated_yield_bond': 'Inflation (%)'
+            'interpolated_yield_bond': 'Yield (%)'
         }
     )
 
