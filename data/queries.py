@@ -180,6 +180,7 @@ def fetch_inflation_data():
             inner join us_inflation on (us_inflation.date=german_bonds.date)
             inner join eur_usd on (eur_usd.date=german_bonds.date)
             where date>='2010-01-01'
+            order by date asc
     """
     return client.query_df(query)
 
