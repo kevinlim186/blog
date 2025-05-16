@@ -5,6 +5,7 @@ import dash
 
 def layout():
     df = fetch_inflation_data()
+    df = df.sort_values(by='date') 
     fig = px.line(
         df,
         x='date',
