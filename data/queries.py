@@ -216,7 +216,6 @@ def fetch_coporate_america_net_income_to_wilshire():
                         )	
                         AND start >= '2007-01-01'
                         AND form = '10-K'
-                        and entity like '%Apple%'
                         AND dateDiff('day', start, end) > 350
                     
                     ORDER BY created_at DESC, filed DESC 
@@ -613,5 +612,42 @@ def fetch_debt_free_cash_flow_by_industry():
         group by 
             year, 
             category
+    """
+    return client.query_df(query)
+
+@cache.memoize()
+def fetch_commitment_of_traders():
+    client = get_clickhouse_client()
+    query = """
+    WITH base AS (
+        select 
+            toStartOfWeek(toDate(date)) AS dt, 
+            argMax(close, dt) AS close, 
+             1 AS key
+        from trading.asset_prices
+        where lower(ticker) ='eurusd'
+        GROUP BY dt
+    ), 
+
+    cot AS (
+        SELECT 
+            *, 
+            addDays(toStartOfWeek(report_date), 7) AS df, 
+            1 AS key
+        FROM (
+            SELECT 
+                *
+            FROM trading.cot_financial_futures 
+            WHERE market_and_exchange_names = 'EURO FX - CHICAGO MERCANTILE EXCHANGE'
+            ORDER BY version DESC 
+            LIMIT 1 BY report_date, market_and_exchange_names
+        )
+    )
+
+    SELECT 
+        *
+    FROM base
+    ASOF JOIN cot 
+    ON base.key = cot.key AND base.dt >= cot.df
     """
     return client.query_df(query)

@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt
+from pages import german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -55,9 +55,14 @@ def capital_expenditure_cache():
 def interest_rate_differential_eur_usd_cache():
     return interest_rate_differential_eur_usd.layout()
 
-# @cache.memoize()
+@cache.memoize()
 def free_cash_flow_to_debt_cache():
     return free_cash_flow_to_debt.layout()
+
+@cache.memoize()
+def commitment_of_traders_cache():
+    return commitment_of_traders.layout()
+
 
 
 # Cache database queries.
@@ -105,7 +110,12 @@ def display_page(pathname):
         return interest_rate_differential_eur_usd_cache()
     elif pathname == '/free-cash-flow-to-debt':
         return free_cash_flow_to_debt_cache()
+    elif pathname == '/commitment-of-traders':
+        return commitment_of_traders_cache()
 
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8050)
+
+
+    
