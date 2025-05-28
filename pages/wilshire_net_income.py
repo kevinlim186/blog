@@ -5,7 +5,7 @@ import numpy as np
 
 def layout():
     df = fetch_coporate_america_net_income_to_wilshire()
-
+    df = df.sort_values('year')
     fig = go.Figure()
 
     # Total Income
