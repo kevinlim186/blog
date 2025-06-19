@@ -651,3 +651,33 @@ def fetch_commitment_of_traders():
     ON base.key = cot.key AND base.dt >= cot.df
     """
     return client.query_df(query)
+
+@cache.memoize()
+def fetch_philippine_rice_prices():
+    client = get_clickhouse_client()
+    query = """
+    with base as (
+        select 
+            toDate(insert_date) dt,
+            sku,
+            market,
+            price,
+            toFloat32OrZero(extract(sku, '\\|\\s*(\\d+(\\.\\d+)?)kg')) AS kilos
+        from input_raw_products 
+        where main_category='groceries'
+        and (lower(sku) like '%dinurado%' or lower(sku) like '%sinandomeng%' )
+        and kilos>0 
+        and dt>='2025-05-24'
+        order by insert_date desc 
+        limit 1 by sku , dt, market
+        )
+
+        select 
+            dt date, 
+            avg(price/kilos) avg_price_per_kilo ,
+            median(price/kilos) median_price
+        from base
+        group by dt
+        order by dt
+    """
+    return client.query_df(query)
