@@ -58,9 +58,9 @@ def layout():
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=1.1,
-            xanchor="center",
-            x=0.5,
+            y=1.0,
+            xanchor="right",
+            x=1.0,
             font=dict(size=13, family='Open Sans', color='white')
         )
     )
