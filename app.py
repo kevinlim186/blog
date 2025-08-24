@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price
+from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -71,6 +71,10 @@ def commitment_of_traders_eur_forcast_cache():
 def philippine_rice_price_cache():
     return philippine_rice_price.layout()
 
+@cache.memoize()
+def philippine_egg_price_cache():
+    return philippine_egg_price.layout()
+
 
 # Cache database queries.
 @app.server.route('/refresh_cache', methods=['POST'])
@@ -123,6 +127,9 @@ def display_page(pathname):
         return commitment_of_traders_eur_forcast_cache()
     elif pathname == '/philippine-rice-price-history':
         return philippine_rice_price_cache()
+    elif pathname == '/philippine-egg-price-history':
+        return philippine_egg_price_cache()
+    
 
 
 if __name__ == '__main__':

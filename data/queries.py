@@ -681,3 +681,34 @@ def fetch_philippine_rice_prices():
         order by dt
     """
     return client.query_df(query)
+
+
+@cache.memoize()
+def fetch_philippine_egg_prices():
+    client = get_clickhouse_client()
+    query = """
+    with base as (
+        select 
+            toDate(insert_date) dt,
+            sku,
+            market,
+            price,
+            toInt32OrZero(extract(sku, '\\|\\s*(\\d+)')) AS pcs
+        from input_raw_products 
+        where 
+        	main_category='groceries'
+        	and lower(sku) like '%egg%'
+--         	and insert_date='2025-06-22 16:52:51'
+        	and lower(sku) like  '%medium%'
+        	and pcs>0
+)
+
+      	select 
+            dt date, 
+            avg(price/pcs) avg_price_per_pc ,
+            median(price/pcs) median_pc
+        from base
+    group by dt
+    order by dt
+    """
+    return client.query_df(query)
