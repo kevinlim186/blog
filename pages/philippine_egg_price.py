@@ -20,7 +20,7 @@ def layout():
         df,
         x='date',
         y=[avg_col, med_col],
-        title='Philippine Egg Price per Piece (Average vs Median)',
+        title='Philippine Medium Egg Price per Piece (Average vs Median)',
         labels={
             'date': 'Date',
             'avg_egg_price_per_pc': 'Average (PHP/pc)',
