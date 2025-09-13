@@ -13,10 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     buttons.forEach(btn => {
       btn.addEventListener("click", function () {
         if (typeof notifyGhost === "function") {
-            console.log('download triggered')
             notifyGhost("csv-download");
-            console.log('download sent')
-          
         }
       });
     });
