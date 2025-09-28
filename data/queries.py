@@ -712,3 +712,77 @@ def fetch_philippine_egg_prices():
     order by dt
     """
     return client.query_df(query)
+
+
+
+@cache.memoize()
+def fetch_philippine_milk_prices():
+    client = get_clickhouse_client()
+    query = """
+        with base as (
+        SELECT
+            toDate(insert_date) dt, 
+            price, 
+                multiIf(
+                -- Case: "X L Y pcs" or "X L Ypcs"
+                match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*(\\d+)\\s*pcs'),
+                    toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs')),
+
+                -- Case: "X ml Y pcs" or "X ml Ypcs"
+                match(sku, '(\\d+)\\s*[mM][lL]\\s*(\\d+)\\s*pcs'),
+                    (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs'))) / 1000,
+
+                -- Case: "X ml x Y" or "X ml x Ys"
+                match(sku, '(\\d+)\\s*[mM][lL]\\s*[xX]\\s*(\\d+)s?'),
+                    (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)'))) / 1000,
+
+                -- Case: "X L x Y" or "X L x Ys"
+                match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*[xX]\\s*(\\d+)s?'),
+                    toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)')),
+
+                -- Case: range in ml (e.g. "200-250ml")
+                match(sku, '(\\d+)\\s*-\\s*(\\d+)\\s*[mM][lL]'),
+                    ((toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 1)) +
+                    toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 2))) / 2.0) / 1000,
+
+                -- Case: "X L"
+                match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]'),
+                    toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')),
+
+                -- Case: "X ml"
+                match(sku, '(\\d+)\\s*[mM][lL]'),
+                    toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) / 1000,
+
+                -- Else NULL
+                NULL
+            ) AS volume_liters,
+            case when (lower(sku) like '%almond%' or lower(sku) like '% oat %' or lower(sku) like '%soy%' or lower(sku) like '%coconut%' or lower(sku) like '%vita%') 
+                then 'Alternatives' else 'Cow Milk' end category_, 
+            price/volume_liters price_per_liters
+            FROM default.input_raw_products
+            WHERE main_category = 'groceries'
+            AND lower(category) LIKE '%milk%'
+            and lower(sku) not like '%evapora%'
+            and lower(sku) not like '%conden%'
+            and lower(sku) not like '%goat%'
+            and volume_liters is not null
+            and lower(sku)  not like '%whip%'
+            and lower(sku) not like '%cream%'
+            and lower(sku) not like '%+%'
+            and (lower(category) like '%fresh%' or lower(category) like '%liquid%')
+            order by insert_date desc
+            limit 1 by dt, sku, market
+            )
+            select 
+                dt, 
+                category_ category, 
+                avg(price_per_liters) avg_price_per_liter,
+                median(price_per_liters) median_price_per_liter
+            from base 
+            group by 
+                dt, 
+                category
+            order by 
+                dt
+    """
+    return client.query_df(query)
