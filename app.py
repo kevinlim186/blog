@@ -136,7 +136,7 @@ def display_page(pathname):
     elif pathname == '/philippine-milk-price-history':
         return philippine_milk_price_cache()
     
-x
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8050)
 
