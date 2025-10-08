@@ -786,3 +786,44 @@ def fetch_philippine_milk_prices():
                 dt
     """
     return client.query_df(query)
+
+
+@cache.memoize()
+def philippine_instant_noodles_price():
+    client = get_clickhouse_client()
+    query = """
+        with base as (
+            select 
+                toDate(insert_date) date, 
+                sku,
+                -- extract base grams
+                toFloat64OrNull(extract(sku, '([0-9]+)g')) AS grams,
+                -- extract multiplier if it exists (e.g. "5pcs")
+                toFloat64OrNull(extract(sku, '([0-9]+)pcs')) AS pcs,
+                -- compute total grams
+                (toFloat64OrNull(extract(sku, '([0-9]+)g')) *
+                multiIf(
+                    extract(sku, '([0-9]+)pcs') != '', 
+                    toFloat64OrNull(extract(sku, '([0-9]+)pcs')),
+                    1
+                )
+                ) AS total_grams,
+                price, 
+                price/total_grams pc_gram
+            from default.input_raw_products
+            where main_category='groceries'
+            and lower(sku) like '%instant noodle%'
+            and date>'2025-05-24'
+            order by insert_date desc 
+            limit 1 by date, sku, market
+            )
+            select 
+                date, 
+                avg(pc_gram) * 65 avg_price, 
+                median(pc_gram) * 65 median_price
+            from base 
+            group by 
+                date
+            order by date               
+    """
+    return client.query_df(query)
