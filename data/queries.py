@@ -788,7 +788,7 @@ def fetch_philippine_milk_prices():
     return client.query_df(query)
 
 
-# @cache.memoize()
+@cache.memoize()
 def philippine_instant_noodles_price():
     client = get_clickhouse_client()
     query = """
