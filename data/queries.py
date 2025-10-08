@@ -812,7 +812,8 @@ def philippine_instant_noodles_price():
                 price/total_grams pc_gram
             from default.input_raw_products
             where main_category='groceries'
-            and lower(sku) like '%instant noodle%'
+            and lower(sku) like '%instant%'
+            and lower(category) like '%noodle%'
             and date>'2025-05-24'
             order by insert_date desc 
             limit 1 by date, sku, market
