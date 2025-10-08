@@ -788,25 +788,30 @@ def fetch_philippine_milk_prices():
     return client.query_df(query)
 
 
-@cache.memoize()
+# @cache.memoize()
 def philippine_instant_noodles_price():
     client = get_clickhouse_client()
     query = """
         with base as (
-            select 
+            select
                 toDate(insert_date) date, 
                 sku,
                 -- extract base grams
                 toFloat64OrNull(extract(sku, '([0-9]+)g')) AS grams,
-                -- extract multiplier if it exists (e.g. "5pcs")
-                toFloat64OrNull(extract(sku, '([0-9]+)pcs')) AS pcs,
+                
+                -- extract multiplier (supports patterns like "6pcs", "x6s", "6s")
+                toFloat64OrNull(
+                    extract(sku, '(?:x\\s*)?([0-9]+)\\s*(?:pcs|s)')
+                ) AS pcs,
+                
                 -- compute total grams
-                (toFloat64OrNull(extract(sku, '([0-9]+)g')) *
-                multiIf(
-                    extract(sku, '([0-9]+)pcs') != '', 
-                    toFloat64OrNull(extract(sku, '([0-9]+)pcs')),
-                    1
-                )
+                (
+                    toFloat64OrNull(extract(sku, '([0-9]+)g')) *
+                    multiIf(
+                        extract(sku, '(?:x\\s*)?([0-9]+)\\s*(?:pcs|s)') != '',
+                        toFloat64OrNull(extract(sku, '(?:x\\s*)?([0-9]+)\\s*(?:pcs|s)')),
+                        1
+                    )
                 ) AS total_grams,
                 price, 
                 price/total_grams pc_gram
@@ -820,8 +825,8 @@ def philippine_instant_noodles_price():
             )
             select 
                 date, 
-                avg(pc_gram) * 65 avg_price, 
-                median(pc_gram) * 65 median_price
+                avg(pc_gram) * 55 avg_price, 
+                median(pc_gram) * 55 median_price
             from base 
             group by 
                 date

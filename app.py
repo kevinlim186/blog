@@ -80,7 +80,7 @@ def philippine_milk_price_cache():
     return philippine_milk_price.layout()
 
 
-@cache.memoize()
+# @cache.memoize()
 def philippine_instant_noodles_price_cache():
     return philippine_instant_noodles_price.layout()
 

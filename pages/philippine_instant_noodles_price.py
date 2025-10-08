@@ -8,8 +8,8 @@ def layout():
     df = df.sort_values(by='date')
     # Use new column names for noodles
     cols = set(df.columns)
-    avg_candidates = ['avg_price', 'avg_noodle_price_per_65g']
-    med_candidates = ['median_price', 'median_noodle_price_per_65g']
+    avg_candidates = ['avg_price', 'avg_noodle_price_per_55g']
+    med_candidates = ['median_price', 'median_noodle_price_per_55g']
     avg_col = next((c for c in avg_candidates if c in cols), None)
     med_col = next((c for c in med_candidates if c in cols), None)
     if not avg_col or not med_col:
@@ -20,18 +20,18 @@ def layout():
         df,
         x='date',
         y=[avg_col, med_col],
-        title='Philippine Instant Noodle Price per 65g (Average vs Median)',
+        title='Philippine Instant Noodle Price per 55g (Average vs Median)',
         labels={
             'date': 'Date',
-            'avg_price': 'Average (PHP/65g)',
-            'median_price': 'Median (PHP/65g)'
+            'avg_price': 'Average (PHP/55g)',
+            'median_price': 'Median (PHP/55g)'
         }
     )
 
     # Rename traces for nicer legend labels
     label_map = {
-        avg_col: 'Average (PHP/65g)',
-        med_col: 'Median (PHP/65g)'
+        avg_col: 'Average (PHP/55g)',
+        med_col: 'Median (PHP/55g)'
     }
     for tr in fig.data:
         if tr.name in label_map:
@@ -43,7 +43,7 @@ def layout():
         paper_bgcolor='#111111',
         font=dict(color='white', family='Arial'),
         title=dict(
-            text='Philippine Instant Noodle Price per 65g (Average vs Median)',
+            text='Philippine Instant Noodle Price per 55g (Average vs Median)',
             x=0.01,
             xanchor='left',
             font=dict(size=26, family='Open Sans', color='white')
@@ -86,7 +86,7 @@ def layout():
 
     # Style average as solid and median as dashed
     fig.for_each_trace(
-        lambda trace: trace.update(line=dict(width=2.5)) if trace.name == "Average (PHP/65g)"
+        lambda trace: trace.update(line=dict(width=2.5)) if trace.name == "Average (PHP/55g)"
         else trace.update(line=dict(width=2.5, dash="dash"))
     )
 
@@ -109,7 +109,7 @@ def layout():
                 }),
                 dcc.Download(id="download-noodle")
             ], style={"textAlign": "center"}),
-            html.P("Note: Prices are standardized at 65 grams per serving.", style={"color": "#cccccc", "fontStyle": "italic", "marginTop": "10px"})
+            html.P("Note: Prices are standardized at 55 grams per serving.", style={"color": "#cccccc", "fontStyle": "italic", "marginTop": "10px"})
         ], className="black-container")
     ])
 
@@ -121,12 +121,12 @@ def layout():
 def download_noodle_data(n_clicks):
     df = fetch_philippine_noodle_prices()
     cols = set(df.columns)
-    avg_candidates = ['avg_price', 'avg_noodle_price_per_65g']
-    med_candidates = ['median_price', 'median_noodle_price_per_65g']
+    avg_candidates = ['avg_price', 'avg_noodle_price_per_55g']
+    med_candidates = ['median_price', 'median_noodle_price_per_55g']
     avg_col = next((c for c in avg_candidates if c in cols), None)
     med_col = next((c for c in med_candidates if c in cols), None)
     return dcc.send_data_frame(
         df[['date', avg_col, med_col]].to_csv,
-        "philippine_noodle_price_per_65g_avg_median.csv",
+        "philippine_noodle_price_per_55g_avg_median.csv",
         index=False
     )
