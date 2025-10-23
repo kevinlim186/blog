@@ -56,12 +56,13 @@ def layout():
             type="date"
         ),
         legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=1.0,
-            xanchor="right",
-            x=1.0,
-            font=dict(size=13, family='Open Sans', color='white')
+            orientation="h",       # horizontal layout
+            yanchor="bottom",      # anchor the legend box at its bottom
+            y=-0.3,                # move it below the chart (negative pushes outside)
+            xanchor="center",
+            x=0.5,                 # center horizontally
+            font=dict(size=13, family='Open Sans', color='white'),
+            bgcolor="rgba(0,0,0,0)",  # optional: transparent background
         )
     )
 
