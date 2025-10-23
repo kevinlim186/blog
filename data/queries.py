@@ -833,3 +833,41 @@ def philippine_instant_noodles_price():
             order by date               
     """
     return client.query_df(query)
+
+
+
+# @cache.memoize()
+def philippine_instant_3_in_1_coffee_price():
+    client = get_clickhouse_client()
+    query = r"""
+        SELECT
+            date, 
+            avg(price / (weight*quantity) * 400) mean_price, 
+            median(price / (weight*quantity) * 400) median_price
+        FROM (
+              select  
+                toDate(insert_date) date,
+                sku, 
+                toFloat32OrZero(extract(sku, '(\\d+)\\s?g')) AS weight,
+                coalesce(
+                    toFloat32OrNull(
+                        extract(
+                            sku,
+                            '\\|[^|]*?\\d+\\s?g[^0-9]*(\\d+)\\s?(?:[pP][cC][sS]?|[sS](?:achet|s)?|pack|Pack)?'
+                        )
+                    ),
+                    1
+                ) AS quantity,
+                price 
+            from default.input_raw_products
+            where main_category='groceries'
+            and lower(category) like '%coffee%'
+            and  match(sku, '\\b[0-9]+\\s?g\\b')
+            and  match(sku, '\\b[Cc]offee\\b')
+            and sku like '%3-in-1%'
+            and sku !='San Mig 3-in-1 Coffee Mix Original 20g | 30s'
+            limit 1 by sku, insert_date)
+            group by date
+            order by date
+        """
+    return client.query_df(query)

@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price
+from pages import *
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -79,11 +79,13 @@ def philippine_egg_price_cache():
 def philippine_milk_price_cache():
     return philippine_milk_price.layout()
 
-
 @cache.memoize()
 def philippine_instant_noodles_price_cache():
     return philippine_instant_noodles_price.layout()
 
+@cache.memoize()
+def philippine_instant_3_in_1_coffee_price_cache():
+    return philippine_instant_3_in_1_coffee_price.layout()
 
 
 # Cache database queries.
@@ -143,8 +145,8 @@ def display_page(pathname):
         return philippine_milk_price_cache()
     elif pathname == '/philippine-instant-noodles-price-history':
         return philippine_instant_noodles_price_cache()
-      
-    
+    elif pathname == '/philippine-instant-3-in-1-coffee-price-history':
+        return philippine_instant_3_in_1_coffee_price_cache()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8050)
