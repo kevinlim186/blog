@@ -878,36 +878,27 @@ def philippine_instant_3_in_1_coffee_price():
 def philippine_cooking_oil():
     client = get_clickhouse_client()
     query = r"""
-        with base as (
-            SELECT
-                toDate(insert_date) date, 
-                sku,
-                coalesce(
-                    toInt64OrNull(
-                        regexpExtract(sku, '(?i)x\\s*(\\d+)', 1)
-                    ),
-                    1
-                ) AS unit_multiplier,
-                price,
-                toFloat64OrNull(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 1)) AS vol,
-                lower(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 2)) AS unit
-            FROM default.input_raw_products
-            WHERE main_category='groceries'
-            AND sku ILIKE '%oil%'
-            AND category ILIKE '%cooking%'
-            and unit in ('ml', 'l')
-            and toDate(insert_date)>='2025-06-02'
-            order by insert_date desc 
-            limit 1 by date, sku, market 
-            )
-
-            select 
-                date, avg(standard_price) mean_price, median(standard_price) median_price
-            from (
-            select date, sku, price,unit_multiplier*vol*if(unit='l' ,1000,1) volume, price/volume*1000 standard_price
-            from base ) 
-            group by date
-            order by date asc
-
+        SELECT
+            toDate(insert_date) date, 
+            sku,
+            coalesce(
+                toInt64OrNull(
+                    regexpExtract(sku, '(?i)(?:x\\s*(\\d+)|[|\\s]+(\\d+)s)', 1)
+                ),
+                toInt64OrNull(
+                    regexpExtract(sku, '(?i)(\\d+)s', 1)
+                ),
+                1
+            ) AS unit_multiplier,
+            price,
+            toFloat64OrNull(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 1)) AS vol,
+            lower(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 2)) AS unit
+        FROM default.input_raw_products
+        WHERE main_category='groceries'
+        AND sku ILIKE '%oil%'
+        AND category ILIKE '%cooking%'
+        and unit in ('ml', 'l')
+        order by insert_date desc 
+        limit 1 by date, sku, market 
         """
     return client.query_df(query)
