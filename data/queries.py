@@ -874,7 +874,7 @@ def philippine_instant_3_in_1_coffee_price():
 
 
 
-# @cache.memoize()
+@cache.memoize()
 def philippine_cooking_oil():
     client = get_clickhouse_client()
     query = r"""
