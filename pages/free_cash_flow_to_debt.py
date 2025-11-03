@@ -6,6 +6,7 @@ from dash.dcc import send_data_frame
 def layout():
     # Fetch and prepare data
     df = fetch_debt_free_cash_flow_by_industry()
+    print(df)
     df = df.sort_values(by=['year', 'category'])
     df = df[(df['year'] >= 2010) & (df['category'] != 'Crypto Assets')]
 
