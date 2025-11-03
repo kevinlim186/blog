@@ -6,6 +6,7 @@ import dash
 def layout():
     df = philippine_cooking_oil()
     df = df.sort_values(by='date')
+    print(df)
 
     avg_col = 'mean_price'
     med_col = 'median_price'

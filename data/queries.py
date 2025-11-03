@@ -874,10 +874,15 @@ def philippine_instant_3_in_1_coffee_price():
 
 
 
-@cache.memoize()
+# @cache.memoize()
 def philippine_cooking_oil():
     client = get_clickhouse_client()
     query = r"""
+        SELECT
+            date, 
+            avg(price / (vol*unit_multiplier) * 400) mean_price, 
+            median(price / (vol*unit_multiplier) * 400) median_price
+        FROM (
         SELECT
             toDate(insert_date) date, 
             sku,
@@ -899,6 +904,7 @@ def philippine_cooking_oil():
         AND category ILIKE '%cooking%'
         and unit in ('ml', 'l')
         order by insert_date desc 
-        limit 1 by date, sku, market 
+        limit 1 by date, sku, market )
+        group by date
         """
     return client.query_df(query)

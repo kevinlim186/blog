@@ -87,7 +87,7 @@ def philippine_instant_noodles_price_cache():
 def philippine_instant_3_in_1_coffee_price_cache():
     return philippine_instant_3_in_1_coffee_price.layout()
 
-@cache.memoize()
+# @cache.memoize()
 def philippine_cooking_oil_price_cache():
     return philippine_cooking_oil_price.layout()
 
