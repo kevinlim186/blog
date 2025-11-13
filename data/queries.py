@@ -852,6 +852,7 @@ def fetch_philippine_onion():
             and sku not ilike '%leave%'
             and sku not ilike '%spring%'
             and min_qty!=0
+            and sku not ilike '%sprout%'
         order by insert_date desc 
         limit 1 by sku, market, date
         ) 
