@@ -811,3 +811,56 @@ def philippine_cooking_oil():
         group by date
         """
     return client.query_df(query)
+
+
+@cache.memoize()
+def fetch_philippine_onion():
+    client = get_clickhouse_client()
+    query = r"""
+        WITH
+            lower(trim(substring(sku, position(sku, '|') + 1))) AS qty,
+            position(qty, 'kg') > 0 AS isKg,
+            toFloat64OrZero(regexpExtract(qty, '(\\d+(?:\\.\\d+)?)')) AS kg_val,
+            toFloat64OrZero(regexpExtract(qty, '^(\\d+(?:\\.\\d+)?)')) AS g_left,
+            toFloat64OrZero(regexpExtract(qty, '(\\d+(?:\\.\\d+)?)[^\\d]*$')) AS g_right, 
+            
+            base as (
+        SELECT
+            toDate(insert_date) date,
+            sku,
+            -- min_qty
+            CASE
+                WHEN isKg THEN 1000 * if(kg_val = 0, 1, kg_val)
+                ELSE g_left
+            END AS min_qty,
+            -- max_qty
+            CASE
+                WHEN isKg THEN 1000 * if(kg_val = 0, 1, kg_val)
+                ELSE g_right
+            END AS max_qty, 
+            (min_qty+max_qty)/2 avg_qty,
+            price , 
+            price/avg_qty price_per_gram, 
+            price_per_gram*375 stadard_price
+        from default.input_raw_products
+        where 
+            main_category='groceries'
+            and (sku ilike '%onion%' or sku ilike '%sibuyas%')
+        -- 	and market = 'waltermart'
+            and (category ilike '%fresh%' and category ilike '%vegetable%')
+            and sku not ilike '%leeks%'
+            and sku not ilike '%leave%'
+            and sku not ilike '%spring%'
+            and min_qty!=0
+        order by insert_date desc 
+        limit 1 by sku, market, date
+        ) 
+        select 
+            date, 
+            avg(stadard_price) avg_price, 
+            median(stadard_price) median_price
+        from base 
+        group by date
+        order by date asc 
+        """
+    return client.query_df(query)
