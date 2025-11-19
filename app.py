@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price
+from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price, philippine_sugar_price
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -95,6 +95,9 @@ def philippine_cooking_oil_price_cache():
 def philippine_onion_price_cache():
     return philippine_onion_price.layout()
 
+@cache.memoize()
+def philippine_sugar_price_cache():
+    return philippine_sugar_price.layout()
 
 
 # Cache database queries.
@@ -160,6 +163,9 @@ def display_page(pathname):
         return philippine_cooking_oil_price_cache()
     elif pathname == '/philippine-onion-price-history':
         return philippine_onion_price_cache()
+    elif pathname == '/philippine-sugar-history':
+        return philippine_sugar_price_cache()
+    
 
 
 if __name__ == '__main__':

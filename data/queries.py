@@ -880,3 +880,62 @@ def fetch_philippine_onion():
         order by date asc 
         """
     return client.query_df(query)
+
+
+
+@cache.memoize()
+def fetch_philippine_sugar_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+                select 
+                    toDate(insert_date) dt,
+                    sku,
+                    market,
+                    price,
+                    multiIf(
+                    -- FRACTIONS like 1/2kg, 3/4 kg
+                    extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg') != '',
+                        (
+                            toFloat64(splitByChar('/', extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg'))[1])
+                            /
+                            toFloat64(splitByChar('/', extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg'))[2])
+                        ),
+                
+                    -- DECIMALS or WHOLE NUMBERS like 1kg, 1.5kg, 2.5kg
+                    extract(sku, '(?i)([0-9]+(?:[.,][0-9]+)?)\\s*kg') != '',
+                        toFloat64(replaceOne(
+                            extract(sku, '(?i)([0-9]+(?:[.,][0-9]+)?)\\s*kg'),
+                            ',',
+                            '.'
+                        )),
+                
+                    -- Default
+                    NULL
+                ) AS kilos, 
+                price/kilos standard_price
+                from default.input_raw_products 
+                where 
+                    main_category='groceries'
+                    and sku ilike '%sugar%' 
+                    and sku ilike '%refined%'   
+                    and (
+                        ( category ilike 'cooking%' and market='ever')
+                        or 
+                        ( market='sm supermarket' and category ilike '%pantry%')
+                        or 
+                        ( market='waltermart' and category ilike '%pantry%')
+                        ) 
+                    and kilos>0 
+                order by insert_date desc 
+                limit 1 by sku , dt, market 
+        ) 
+        select 
+                dt date, 
+                avg(standard_price) avg_price_per_kilo ,
+                median(standard_price) median_price
+        from base
+        group by dt
+        order by dt
+        """
+    return client.query_df(query)
