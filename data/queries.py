@@ -565,7 +565,10 @@ def fetch_philippine_rice_prices():
             sku,
             market,
             price,
-            toFloat32OrZero(extract(sku, '\\|\\s*(\\d+(\\.\\d+)?)kg')) AS kilos
+            case 
+            	when market='ever' then toFloat32OrZero(extract(sku, 's*(\\d+(\\.\\d+)?)kg')) 
+            	else toFloat32OrZero(extract(sku, '\\|\\s*(\\d+(\\.\\d+)?)kg')) 
+            end AS kilos
         from input_raw_products 
         where main_category='groceries'
         and (lower(sku) like '%dinurado%' or lower(sku) like '%sinandomeng%' )
@@ -596,7 +599,10 @@ def fetch_philippine_egg_prices():
             sku,
             market,
             price,
-            toInt32OrZero(extract(sku, '\\|\\s*(\\d+)')) AS pcs
+            case 	
+            	when market='ever' then toInt32OrZero(extract(sku, '(\\d+)')) 
+            	else toInt32OrZero(extract(sku, '\\|\\s*(\\d+)'))
+            end   AS pcs
         from input_raw_products 
         where 
         	main_category='groceries'
@@ -672,7 +678,7 @@ def fetch_philippine_milk_prices():
             and lower(sku)  not like '%whip%'
             and lower(sku) not like '%cream%'
             and lower(sku) not like '%+%'
-            and (lower(category) like '%fresh%' or lower(category) like '%liquid%')
+            and (lower(category) like '%fresh%' or lower(category) like '%liquid%' or category ilike '%milk%')
             order by insert_date desc
             limit 1 by dt, sku, market
             )
@@ -764,11 +770,12 @@ def philippine_instant_3_in_1_coffee_price():
                 price 
             from default.input_raw_products
             where main_category='groceries'
-            and lower(category) like '%coffee%'
+            and (lower(category) like '%coffee%' or (category='Beverages' and market='ever'))
             and  match(sku, '\\b[0-9]+\\s?g\\b')
             and  match(sku, '\\b[Cc]offee\\b')
-            and sku like '%3-in-1%'
+			and match(sku, '(?i)3[[:space:][:punct:]]*(in)?[[:space:][:punct:]]*1')
             and sku !='San Mig 3-in-1 Coffee Mix Original 20g | 30s'
+            and sku not ilike '%creamer%'
             limit 1 by sku, insert_date)
             group by date
             order by date
@@ -838,7 +845,11 @@ def fetch_philippine_onion():
                 WHEN isKg THEN 1000 * if(kg_val = 0, 1, kg_val)
                 ELSE g_right
             END AS max_qty, 
-            (min_qty+max_qty)/2 avg_qty,
+            case 
+            	when min_qty = 0 and max_qty!=0 then max_qty
+            	when min_qty != 0 and max_qty=0 then min_qty
+            	else  (min_qty+max_qty)/2 
+            end avg_qty,
             price , 
             price/avg_qty price_per_gram, 
             price_per_gram*375 stadard_price
@@ -846,16 +857,20 @@ def fetch_philippine_onion():
         where 
             main_category='groceries'
             and (sku ilike '%onion%' or sku ilike '%sibuyas%')
-        -- 	and market = 'waltermart'
-            and (category ilike '%fresh%' and category ilike '%vegetable%')
+            and (
+            		(category ilike '%fresh%' and category ilike '%vegetable%')
+            		or 
+            		(category ilike '%fresh%' and market='ever')
+            	)
             and sku not ilike '%leeks%'
             and sku not ilike '%leave%'
             and sku not ilike '%spring%'
-            and min_qty!=0
+            and (min_qty!=0 or max_qty!=0)
             and sku not ilike '%sprout%'
         order by insert_date desc 
         limit 1 by sku, market, date
         ) 
+      
         select 
             date, 
             avg(stadard_price) avg_price, 
