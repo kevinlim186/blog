@@ -610,6 +610,8 @@ def fetch_philippine_egg_prices():
 --         	and insert_date='2025-06-22 16:52:51'
         	and lower(sku) like  '%medium%'
         	and pcs>0
+        order by insert_date desc 
+        limit 1 by dt, sku, market
 )
 
       	select 
@@ -678,6 +680,17 @@ def fetch_philippine_milk_prices():
             and lower(sku)  not like '%whip%'
             and lower(sku) not like '%cream%'
             and lower(sku) not like '%+%'
+            and lower(sku) not like '%yoghurt%'
+            and  (
+            		lower(sku) like '%milk%'
+            		or 
+            		lower(sku) like '%soy%' 
+            		or 
+            		lower(sku) like '%almond%' 	
+            		or 
+            		lower(sku) like '%oat%' 
+   		
+            	)
             and (lower(category) like '%fresh%' or lower(category) like '%liquid%' or category ilike '%milk%')
             order by insert_date desc
             limit 1 by dt, sku, market
