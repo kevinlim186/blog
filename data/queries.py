@@ -788,26 +788,33 @@ def philippine_instant_3_in_1_coffee_price():
 def philippine_cooking_oil():
     client = get_clickhouse_client()
     query = r"""
-        SELECT
+         SELECT
             date, 
-            avg(price / (vol*unit_multiplier) * 400) mean_price, 
-            median(price / (vol*unit_multiplier) * 400) median_price
+            avg(price / adj_vol ) mean_price, 
+            median(price / adj_vol) median_price
         FROM (
         SELECT
             toDate(insert_date) date, 
             sku,
-            coalesce(
-                toInt64OrNull(
-                    regexpExtract(sku, '(?i)(?:x\\s*(\\d+)|[|\\s]+(\\d+)s)', 1)
-                ),
-                toInt64OrNull(
-                    regexpExtract(sku, '(?i)(\\d+)s', 1)
-                ),
-                1
-            ) AS unit_multiplier,
+        coalesce(
+
+		    -- Match 2x, 3x, "x 2", "x2", etc.
+		    toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*x', 1)),
+		
+		    -- Match "x 2s", "x2s", "x 2pcs", "x2pcs"
+		    toInt64OrNull(regexpExtract(sku, '(?i)x\\s*(\\d+)', 1)),
+		
+		    -- Match "2s", "2pcs", "2 pc", "2 pck"
+		    toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*(s|pcs|pc|pck)', 1)),
+		
+		    -- Fallback
+		    1
+		
+		) AS unit_multiplier,
             price,
             toFloat64OrNull(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 1)) AS vol,
-            lower(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 2)) AS unit
+            lower(regexpExtract(sku, '(\\d+(?:[\\.\\/]\\d+)?)\\s*\\.?\\s*(?i)(ml|l|gallon)', 2)) AS unit,
+        case when unit='ml' then vol /1000 else vol end*unit_multiplier as adj_vol
         FROM default.input_raw_products
         WHERE main_category='groceries'
         AND sku ILIKE '%oil%'
