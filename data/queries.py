@@ -1059,7 +1059,7 @@ def philippine_detergent_powder():
             )
         select 
             td date, 
-            uniq(sku) sampled_skus,
+            uniq(sku, market) sampled_skus,
             avg(price_per_gram * 2000) mean_price, 
             median(price_per_gram * 2000) median_price
         from base 
