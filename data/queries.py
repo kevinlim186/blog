@@ -1064,5 +1064,75 @@ def philippine_detergent_powder():
             median(price_per_gram * 2000) median_price
         from base 
         group by date
+        order by date
+        """
+    return client.query_df(query)
+
+
+
+@cache.memoize()
+def philippine_sardines():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+            SELECT 
+                toDate(insert_date) td, 
+                sku, 
+                market,
+
+                /* ✅ extract qty from patterns like 6+1, 3+2pcs */
+                case 
+                    when market='ever' then toInt64OrNull(regexpExtract(sku, '(?i)(?:^|[^0-9])(\\d+)x\\s*(\\d+)\\s*(g|gr)', 1))
+                else 
+                    (
+                        toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*\\+\\s*(\\d+)', 1)) +
+                        toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*\\+\\s*(\\d+)', 2))
+                    ) end AS qty_plus,
+
+                /* ✅ extract simple multipliers: x6, 6x, 6pcs, 6s */
+                coalesce(
+                    toInt64OrNull(regexpExtract(sku, '(?i)\\b(\\d+)\\s*x\\b', 1)),
+                    toInt64OrNull(regexpExtract(sku, '(?i)x\\s*(\\d+)', 1)),
+                    toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*(pcs|s)\\b', 1)),
+                    1
+                ) AS qty_simple,
+
+                /* ✅ base quantity = qty_plus fallback qty_simple */
+                coalesce(qty_plus, qty_simple, 1) AS qty,
+
+                /* ✅ base grams */
+                multiIf(
+                    match(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*kg'),
+                        toFloat64(extract(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*kg')) * 1000.0,
+
+                    match(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*(g|gr)'),
+                        toFloat64(extract(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*(g|gr)')),
+
+                    NULL
+                ) AS grams,
+
+                /* ✅ final total weight, rounded */
+                round(grams * toFloat64(qty)) AS total_grams,
+
+                price / total_grams AS price_per_gram
+
+            FROM default.input_raw_products
+            WHERE main_category = 'groceries'
+    		and sku ilike '%sardin%'
+    		and total_grams is not null
+    		and insert_date>'2025-05-24'
+            ORDER BY insert_date DESC
+            limit 1 by td,  sku, market 
+            )
+            
+   
+        select 
+            td date, 
+            uniq(sku, market) sampled_skus,
+            avg(price_per_gram * 155) mean_price, 
+            median(price_per_gram * 155) median_price
+        from base 
+        group by date
+        order by date
         """
     return client.query_df(query)
