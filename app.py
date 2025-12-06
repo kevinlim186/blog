@@ -332,7 +332,7 @@ def api_router(pathname):
         {table_html}
         <script>
             const fig = {figure_json};
-            const chartDivId = "{div_id}"; # Use a non-conflicting name locally
+            const chartDivId = "{div_id}"; // Use a non-conflicting name locally
 
             // Create the plot first
             Plotly.newPlot(chartDivId, fig.data, fig.layout, {{responsive: true}});
