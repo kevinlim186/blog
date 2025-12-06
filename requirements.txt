@@ -1,0 +1,6 @@
+dash
+plotly
+clickhouse-connect
+pandas
+flask-cors
+flask-caching
