@@ -336,9 +336,8 @@ def api_router(pathname):
         Plotly.newPlot("{div_id}", fig.data, fig.layout, {{responsive: true}});
         
         // Add window resize listener for responsiveness
-        const chartId = "{div_id}";
         window.addEventListener('resize', () => {{
-            const chartDiv = document.getElementById(chartId);
+            const chartDiv = document.getElementById("{div_id}");
             if (chartDiv && typeof Plotly !== 'undefined') {{
                 Plotly.relayout(chartDiv, {{ autosize: true }});
             }}
