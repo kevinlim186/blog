@@ -291,8 +291,7 @@ def api_router(pathname):
             </p>
 
             <div id="{div_id}" style="height:100%; width:100%; min-height:460px;"></div>
-            <br>
-            
+
             <div style="text-align:center; margin-top:12px;">
                  <p style="
                     color: #777; 
@@ -302,7 +301,7 @@ def api_router(pathname):
                 ">
                     Data provided by <strong style="color:grey;">yellowplannet.com</strong>
                 </p>
-
+                <br><br>
                 <a 
                     href="https://visualization.yellowplannet.com/api/{pathname}/data"
                     style="
