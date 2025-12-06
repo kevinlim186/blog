@@ -154,14 +154,14 @@ def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
     """
     data_format = "CSV"
     # Uses the correct API endpoint for the data download
-    data_url = f"http://localhost:8050/api/{pathname}/data" 
+    data_url = f"https://visualization.yellowplannet.com/api/{pathname}/data" 
     
     schema_data = {
         "@context": "https://schema.org/",
         "@type": "Dataset",
         "name": f"Dataset for {title}",
         "description": description,
-        "url": f"http://localhost:8050/{pathname}", # Link to the main page/chart
+        "url": f"https://visualization.yellowplannet.com/{pathname}", # Link to the main page/chart
         "keywords": title.lower().split() + ["data", "chart", pathname],
         "creator": {
             "@type": "Organization",
@@ -295,7 +295,7 @@ def api_router(pathname):
             
             <div style="text-align:center; margin-top:12px;">
                 <a 
-                    href="http://localhost:8050/api/{pathname}/data"
+                    href="https://visualization.yellowplannet.com/api/{pathname}/data"
                     style="
                         /* Professional Palette: Dark Blue/White, Muted Accent */
                         background-color: #243E82; /* Deep Blue Button (Primary Color) */
