@@ -304,6 +304,7 @@ def api_router(pathname):
                 <br><br>
                 <a 
                     href="https://visualization.yellowplannet.com/api/{pathname}/data"
+                    class="download-chart-data"
                     style="
                         /* Professional Palette: Dark Blue/White, Muted Accent */
                         background-color: #243E82; /* Deep Blue Button (Primary Color) */
