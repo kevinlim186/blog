@@ -41,13 +41,11 @@ def layout():
 
     # Clean layout
     fig.update_layout(
-        template='plotly_dark',
+        template=CHART_TEMPLATE,
         title_x=0.01,
         margin=dict(l=0, r=0, t=60, b=50),
-        font=dict(color='white', family='Arial'),
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
         showlegend=False,
+        font=dict(color=THEME_COLORS["text"]),
     )
 
     # Format y-axis as percentage
@@ -73,15 +71,13 @@ def layout():
         yanchor="middle"
     )
 
-    return html.Div([
+    return themed_card(
+        dcc.Graph(id="fcf-to-debt-ratio-graph", figure=fig),
         html.Div([
-            dcc.Graph(id="fcf-to-debt-ratio-graph", figure=fig),
-            html.Div([
-                html.Button("Download CSV", id="download-btn-fcf-debt", n_clicks=0, className="black-button"),
-                dcc.Download(id="download-fcf-debt")
-            ], style={"textAlign": "center", "marginTop": "10px"})
-        ], className="black-container")
-    ])
+            html.Button("Download CSV", id="download-btn-fcf-debt", n_clicks=0, className="black-button"),
+            dcc.Download(id="download-fcf-debt")
+        ], style={"textAlign": "center", "marginTop": "10px"})
+    )
 
 @callback(
     Output("download-fcf-debt", "data"),
@@ -109,3 +105,20 @@ def download_fcf_debt_data(n_clicks):
         "free_cash_flow_to_long_term_debt_by_industry.csv",
         index=False
     )
+
+def get_data():
+    df = fetch_debt_free_cash_flow_by_industry()
+    df = df[(df['year'] >= 2010) & (df['category'] != 'Crypto Assets')]
+
+    rename_map = {
+        'Industrial Applications and Services': 'Industrial',
+        'Energy & Transportation': 'Energy/Transport',
+        'Real Estate & Construction': 'Real Estate',
+        'Trade & Services': 'Trade',
+        'Life Sciences': 'LifeSci',
+        'Technology': 'Tech',
+        'Manufacturing': 'Mfg',
+        'Finance': 'Finance'
+    }
+    df['category'] = df['category'].map(rename_map).fillna(df['category'])
+    return df
