@@ -294,6 +294,15 @@ def api_router(pathname):
             <br>
             
             <div style="text-align:center; margin-top:12px;">
+                 <p style="
+                    color: #777; 
+                    font-size: 11px; 
+                    margin-top: 10px;
+                    margin-bottom: 0;
+                ">
+                    Data provided by <strong style="color:grey;">yellowplannet.com</strong>
+                </p>
+
                 <a 
                     href="https://visualization.yellowplannet.com/api/{pathname}/data"
                     style="
@@ -318,14 +327,6 @@ def api_router(pathname):
                     Download Raw Data
                 </a>
                 
-                <p style="
-                    color: #777; 
-                    font-size: 11px; 
-                    margin-top: 10px;
-                    margin-bottom: 0;
-                ">
-                    Data provided by <strong style="color:grey;">yellowplannet.com</strong>
-                </p>
             </div>
         </div>
         
