@@ -330,18 +330,26 @@ def api_router(pathname):
         </div>
         
         {table_html}
-
         <script>
-        const fig = {figure_json};
-        Plotly.newPlot("{div_id}", fig.data, fig.layout, {{responsive: true}});
-        
-        // Add window resize listener for responsiveness
-        window.addEventListener('resize', () => {{
-            const chartDiv = document.getElementById("{div_id}");
-            if (chartDiv && typeof Plotly !== 'undefined') {{
-                Plotly.relayout(chartDiv, {{ autosize: true }});
-            }}
-        }});
+            const fig = {figure_json};
+            const chartDivId = "{div_id}"; # Use a non-conflicting name locally
+
+            // Create the plot first
+            Plotly.newPlot(chartDivId, fig.data, fig.layout, {{responsive: true}});
+
+            // Use an IIFE to wrap the resize logic, creating a unique scope 
+            // for the chartId variable in each embed execution.
+            (function() {{
+                // 'chartId' is now scoped ONLY to this function block.
+                const chartId = chartDivId; 
+
+                window.addEventListener('resize', () => {{
+                    const chartDiv = document.getElementById(chartId);
+                    if (chartDiv && typeof Plotly !== 'undefined') {{
+                        Plotly.relayout(chartDiv, {{ autosize: true }});
+                    }}
+                }});
+            }})();
         </script>
         """
 
