@@ -217,201 +217,9 @@ def refresh_cache():
 
     return Response("Cache has been fully refreshed and rebuilt.", status=200)
 
-Python
-from dash import Dash, html, dcc, Input, Output, callback
-from pages import (
-    commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, 
-    german_10_year_inflation_protected_rate, german_10_year_bonds, 
-    german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price, 
-    telecom_interest_sensitive_stock, wilshire_cumulative_change, 
-    wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, 
-    interest_rate_differential_eur_usd, free_cash_flow_to_debt, 
-    commitment_of_traders, philippine_rice_price, philippine_egg_price, 
-    philippine_milk_price, philippine_instant_noodles_price, 
-    philippine_cooking_oil_price, philippine_onion_price, 
-    philippine_sugar_price, philippine_detergent_powder, philippine_sardines
-)
-
-from cache import cache
-from flask import request, Response, json
-from flask_cors import CORS
-from utils.utility import find_graph
-import data.queries as dq
-import time
-import inspect
-import pandas as pd
-from datetime import datetime
-import json
-
-# ====================================================================
-# DASH APP SETUP
-# ====================================================================
-
-app = Dash(__name__,  suppress_callback_exceptions=True)
-CORS(app.server)
-# Assuming 'cache' object is defined and initialized elsewhere if needed
-# cache.init_app(app.server) 
-
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
-
-# Centralized page/API mapping
-# NOTE: Removed the caching wrappers for brevity, using direct module imports.
-PAGE_LAYOUTS = {
-    "german-10-year-bonds": german_10_year_bonds,
-    "german-10-year-inflation-protected-rate": german_10_year_inflation_protected_rate,
-    "german-10-year-breakeven-inflation": german_10_year_breakeven_inflation,
-    "wilshire-total-net-income": wilshire_net_income,
-    "german-inflation-real-return-spread-eurusd": german_breakeven_eurusd,
-    "telecom-interest-sensitive-stock": telecom_interest_sensitive_stock,
-    "wilshire-5000-cumulative-change": wilshire_cumulative_change,
-    "us-companies-cashflow-tax": us_companies_cashflow_tax,
-    "capital-expenditure": capital_expenditure,
-    "interest-rate-differential-eur-usd": interest_rate_differential_eur_usd,
-    "free-cash-flow-to-debt": free_cash_flow_to_debt,
-    "commitment-of-traders": commitment_of_traders,
-    "commitment-of_traders-eur-forecast": commitment_of_traders_eur_forcast,
-    "philippine-rice-price-history": philippine_rice_price,
-    "philippine-egg-price-history": philippine_egg_price,
-    "philippine-milk-price-history": philippine_milk_price,
-    "philippine-instant-noodles-price-history": philippine_instant_noodles_price,
-    "philippine-instant-3-in-1-coffee-price-history": philippine_instant_3_in_1_coffee_price,
-    "philippine-cooking-oil-price-history": philippine_cooking_oil_price,
-    "philippine-onion-price-history": philippine_onion_price,
-    "philippine-sugar-history": philippine_sugar_price,
-    "philippine-detergent-powder": philippine_detergent_powder,
-    "philippine_sardines": philippine_sardines,
-}
-API_FIGURES = PAGE_LAYOUTS
-
-# ====================================================================
-# HELPER FUNCTIONS (for API and SEO)
-# ====================================================================
-
-def get_raw_data_for_pathname(pathname):
-    """
-    Retrieves the raw data DataFrame using the module's get_data() function
-    and converts it into the column-oriented dictionary format for the table generator.
-    """
-    module = API_FIGURES.get(pathname) 
-    
-    if module is None or not hasattr(module, "get_data"):
-        return {}
-
-    try:
-        # Call the module's get_data() function to get the DataFrame
-        df = module.get_data()
-    except Exception as e:
-        print(f"Error retrieving data for {pathname}: {e}")
-        return {}
-        
-    if df is None or df.empty:
-        return {}
-    
-    # Convert the DataFrame to the required dictionary structure
-    return df.to_dict('list')
-
-
-def generate_invisible_data_table(raw_data, pathname):
-    """
-    Generates a hidden HTML table containing the raw data for SEO and accessibility.
-    """
-    if not raw_data:
-        return ""
-    
-    headers = list(raw_data.keys()) 
-    try:
-        num_rows = len(raw_data[headers[0]])
-    except IndexError:
-        return "" 
-
-    thead = "<thead><tr>"
-    for h in headers:
-        thead += f"<th>{h}</th>"
-    thead += "</tr></thead>"
-    
-    tbody = "<tbody>"
-    for i in range(num_rows):
-        tbody += "<tr>"
-        for col in headers:
-            cell_value = raw_data[col][i]
-            tbody += f"<td>{cell_value}</td>"
-        tbody += "</tr>"
-    tbody += "</tbody>"
-    
-    table_style = """
-        position: absolute; 
-        left: -9999px; 
-        top: auto; 
-        width: 1px; 
-        height: 1px; 
-        overflow: hidden;
-    """
-    
-    title = pathname.replace('-', ' ').title()
-
-    table_html = f"""
-        <div style="{table_style}">
-            <h3>Raw Data for {title}</h3>
-            <table summary="Raw data presented in the chart titled {title}">
-                {thead}
-                {tbody}
-            </table>
-        </div>
-    """
-    return table_html
-
-
-def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
-    """
-    Generates the JSON-LD script tag for Schema.org Dataset annotation.
-    """
-    data_format = "CSV"
-    data_url = f"https://visualization.yellowplannet.com/api/{pathname}/data" # Updated to HTTPS
-    
-    schema_data = {
-        "@context": "https://schema.org/",
-        "@type": "Dataset",
-        "name": f"Dataset for {title}",
-        "description": description,
-        "url": f"https://visualization.yellowplannet.com/{pathname}", # Updated to HTTPS
-        "keywords": title.lower().split() + ["data", "chart", pathname],
-        "creator": {
-            "@type": "Organization",
-            "name": "YellowPlannet.com",
-            "url": "http://yellowplannet.com"
-        },
-        "spatialCoverage": "Global",
-        "distribution": {
-            "@type": "DataDownload",
-            "encodingFormat": data_format,
-            "contentUrl": data_url
-        },
-        "variableMeasured": ", ".join(columns),
-        "dateModified": date_modified
-    }
-    
-    json_ld = json.dumps(schema_data, indent=2)
-
-    return f"""
-        <script type="application/ld+json">
-        {json_ld}
-        </script>
-    """
-
-# ====================================================================
-# FLASK API ROUTES
-# ====================================================================
-
-# Centralized API router for chart embedding
 @app.server.route('/api/<pathname>')
 def api_router(pathname):
-    # Use the 'div_id' from the query parameters, or default to a unique ID
-    # This addresses the need to load multiple charts on one page.
-    default_div_id = f"{pathname}-chart"
-    div_id = request.args.get('div_id', default_div_id)
+    div_id = request.args.get('div_id', 'plotly-chart')
 
     if pathname not in API_FIGURES:
         return Response(f"Unknown API endpoint: {pathname}", status=404)
@@ -423,14 +231,15 @@ def api_router(pathname):
     card = layout.children[0]
     elements = card.children
 
-    # Initialize variables to avoid NameError
     extracted_title = ""
     extracted_desc = ""
 
     for el in elements:
         if isinstance(el, html.H2):
+            # Assumes children is a single string or list of strings
             extracted_title = "".join(map(str, el.children)) if isinstance(el.children, list) else str(el.children)
         elif isinstance(el, html.P):
+            # Assumes children is a single string or list of strings
             extracted_desc = "".join(map(str, el.children)) if isinstance(el.children, list) else str(el.children)
 
     if not extracted_title:
@@ -443,7 +252,6 @@ def api_router(pathname):
 
     figure_json = fig.to_json()
 
-    # Data and SEO Preparation
     raw_data = get_raw_data_for_pathname(pathname) 
     table_html = generate_invisible_data_table(raw_data, pathname) 
     columns = list(raw_data.keys()) if raw_data else []
@@ -455,6 +263,7 @@ def api_router(pathname):
         columns, 
         date_modified
     )
+    # --- END Preparation ---
 
     # Build embeddable HTML block
     embed_html = f"""
@@ -489,8 +298,8 @@ def api_router(pathname):
                     href="https://visualization.yellowplannet.com/api/{pathname}/data"
                     style="
                         /* Professional Palette: Dark Blue/White, Muted Accent */
-                        background-color: #243E82; 
-                        color: white; 
+                        background-color: #243E82; /* Deep Blue Button (Primary Color) */
+                        color: white; /* White text for contrast */
                         border: 1px solid #1A316A;
                         padding: 10px 18px;
                         border-radius: 4px;
@@ -500,18 +309,13 @@ def api_router(pathname):
                         transition: background-color 0.2s;
                         display: inline-flex;
                         align-items: center;
+                        /* Subtler shadow */
                         box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
                     "
                     onmouseover="this.style.backgroundColor='#1A316A'" 
                     onmouseout="this.style.backgroundColor='#243E82'"
                 >
-                    <span style="
-                        font-size: 18px; 
-                        line-height: 1; 
-                        margin-right: 8px; 
-                        color: #E0E0E0; 
-                    ">&#x2B07;</span> 
-                    Download Raw Data (CSV)
+                    Download Raw Data
                 </a>
                 
                 <p style="
@@ -520,7 +324,7 @@ def api_router(pathname):
                     margin-top: 10px;
                     margin-bottom: 0;
                 ">
-                    Data provided by <strong style="color: #243E82;">YellowPlannet.com</strong>
+                    Data provided by <strong style="color:grey;">yellowplannet.com</strong>
                 </p>
             </div>
         </div>
@@ -528,21 +332,17 @@ def api_router(pathname):
         {table_html}
 
         <script>
-        // Use a unique variable name to prevent conflict when multiple charts load
-        const fig_{pathname.replace('-', '_')} = {figure_json}; 
-        const chartDivId = "{div_id}";
+        const fig = {figure_json};
+        Plotly.newPlot("{div_id}", fig.data, fig.layout, {{responsive: true}});
         
-        Plotly.newPlot(chartDivId, fig_{pathname.replace('-', '_')}.data, fig_{pathname.replace('-', '_')}.layout, {{responsive: true}});
-        
-        // Use a closure or immediate function wrapper for resize logic to prevent global variable pollution
-        (function(id) {{
-            window.addEventListener('resize', function() {{
-                const chartDiv = document.getElementById(id);
-                if (chartDiv && typeof Plotly !== 'undefined') {{
-                    Plotly.relayout(chartDiv, {{ autosize: true }});
-                }}
-            }});
-        }})(chartDivId);
+        // Add window resize listener for responsiveness
+        const chartId = "{div_id}";
+        window.addEventListener('resize', () => {{
+            const chartDiv = document.getElementById(chartId);
+            if (chartDiv && typeof Plotly !== 'undefined') {{
+                Plotly.relayout(chartDiv, {{ autosize: true }});
+            }}
+        }});
         </script>
         """
 
