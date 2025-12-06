@@ -5,6 +5,8 @@ import pandas as pd
 from data.queries import fetch_commitment_of_traders
 from utils.utility import getBinsFromTrend
 import numpy as np
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
+
 
 def layout():
     df = fetch_commitment_of_traders()

@@ -1,96 +1,86 @@
-from dash import html, dcc, Input, Output, ctx, callback
-import plotly.express as px
+from dash import html, dcc, Input, Output, callback
 from data.queries import fetch_philippine_rice_prices
-import dash
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
+import plotly.graph_objects as go
 
 def layout():
     df = fetch_philippine_rice_prices()
     df = df.sort_values(by='date') 
-    fig = px.line(
-        df,
-        x='date',
-        y=['avg_price_per_kilo', 'median_price'],
-        title='Philippine Rice Price per Kilo (Average vs Median)',
-        labels={
-            'date': 'Date',
-            'avg_price_per_kilo': 'Average Price (PHP)',
-            'median_price': 'Median Price (PHP)'
-        }
-    )
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df["date"], y=df["avg_price_per_kilo"],
+        mode="lines",
+        name="Average (PHP per Kilo)",
+        line=dict(width=2.5)
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df["date"], y=df["median_price"],
+        mode="lines",
+        name="Median (PHP per Kilo)",
+        line=dict(width=2.5, dash="dash")
+    ))
+
+    if "sampled_skus" in df.columns:
+        fig.add_trace(go.Bar(
+            x=df["date"], y=df["sampled_skus"],
+            name="Sampled SKUs",
+            opacity=0.30,
+            marker_color=THEME_COLORS["primary"],
+            yaxis="y2",
+            hovertemplate="SKUs sampled: %{y}<extra></extra>"
+        ))
 
     fig.update_layout(
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
-        title=dict(
-            text='Philippine Rice Price per Kilo (Average vs Median)',
-            x=0.01,
-            xanchor='left',
-            font=dict(size=26, family='Open Sans', color='white')
-        ),
-        margin=dict(l=30, r=30, t=100, b=50),
-        height=500,
-        hovermode='x unified',
-        yaxis=dict(gridcolor='#333'),
-        hoverlabel=dict(
-            namelength=-1
-        ),
-        xaxis=dict(
-            tickformat="%Y-%m-%d",
-            hoverformat="%Y-%m-%d",
-            gridcolor='#333',
-            rangeselector=dict(
-                buttons=list([
-                    dict(count=7, label="1W", step="day", stepmode="backward"),
-                    dict(count=1, label="1M", step="month", stepmode="backward"),
-                    dict(count=3, label="3M", step="month", stepmode="backward"),
-                    dict(count=6, label="6M", step="month", stepmode="backward"),
-                    dict(step="all", label="All")
-                ]),
-                bgcolor="#222222",
-                font=dict(color="white", size=13),
-                activecolor="#FFCC00"
-            ),
-            # rangeslider=dict(visible=True),
-            type="date"
+        **CHART_TEMPLATE,
+        yaxis=dict(title="Price (PHP per Kilo)"),
+        yaxis2=dict(
+            title="Sample Size (SKUs)",
+            overlaying="y",
+            side="right",
+            showgrid=False
         ),
         legend=dict(
-            orientation="h",       # horizontal layout
-            yanchor="bottom",      # anchor the legend box at its bottom
-            y=-0.3,                # move it below the chart (negative pushes outside)
-            xanchor="center",
-            x=0.5,                 # center horizontally
-            font=dict(size=13, family='Open Sans', color='white'),
-            bgcolor="rgba(0,0,0,0)",  # optional: transparent background
-        )
-    )
-
-    fig.for_each_trace(
-        lambda trace: trace.update(line=dict(width=2.5)) if trace.name == "Average Price (PHP)"
-        else trace.update(line=dict(width=2.5, dash="dash"))
+            orientation="h",
+            y=-0.25,
+            x=0.5,
+            xanchor="center"
+        ),
+        autosize=True
     )
 
     return html.Div([
-        html.Div([
-            dcc.Graph(id="philippine-rice-price", figure=fig),
+        themed_card([
+            html.H2("Philippine Rice Price", style={
+                "color": THEME_COLORS["text"],
+                "marginBottom": "6px"
+            }),
+            html.P(
+                "Daily standardized rice pricing across the Philippines.",
+                style={"color": "#555", "marginTop": 0}
+            ),
+            dcc.Graph(id="philippine-rice-price", figure=fig, style={"height": "460px"}),
             html.Div([
-                html.Button("Download CSV", id="download-btn", n_clicks=0, style={
-                    "backgroundColor": "#FFCC00",
-                    "color": "#000",
-                    "padding": "10px 20px",
-                    "border": "none",
-                    "borderRadius": "4px",
-                    "fontWeight": "bold",
-                    "fontSize": "14px",
-                    "cursor": "pointer",
-                    "marginTop": "10px",
-                    "boxShadow": "0 2px 4px rgba(0,0,0,0.3)",
-                    "transition": "background-color 0.2s ease-in-out"
-                }),
+                html.Button(
+                    "Download CSV",
+                    id="download-btn",
+                    n_clicks=0,
+                    style={
+                        "backgroundColor": THEME_COLORS["primary"],
+                        "color": "#FFF",
+                        "padding": "10px 22px",
+                        "border": "none",
+                        "borderRadius": "6px",
+                        "fontWeight": "600",
+                        "cursor": "pointer",
+                        "fontSize": "14px",
+                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                    }
+                ),
                 dcc.Download(id="download-rice")
-            ], style={"textAlign": "center"})
-        ], className="black-container")
+            ], style={"textAlign": "right", "marginTop": "12px"})
+        ])
     ])
 
 @callback(
@@ -100,4 +90,9 @@ def layout():
 )
 def download_rice_data(n_clicks):
     df = fetch_philippine_rice_prices()
-    return dcc.send_data_frame(df[['date', 'avg_price_per_kilo', 'median_price']].to_csv, "philippine_rice_price_avg_median.csv", index=False)
+    return dcc.send_data_frame(df[['date', 'avg_price_per_kilo', 'median_price', 'sampled_skus']].to_csv, "philippine_rice_price_avg_median.csv", index=False)
+
+
+def get_data():
+    df = fetch_philippine_rice_prices()
+    return df

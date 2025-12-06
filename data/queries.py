@@ -507,7 +507,7 @@ def fetch_capital_expenditure_by_industry():
     return client.query_df(query)
 
 
-# @cache.memoize()
+@cache.memoize()
 def fetch_debt_free_cash_flow_by_industry():
     client = get_clickhouse_client()
     query = """
@@ -581,7 +581,8 @@ def fetch_philippine_rice_prices():
         select 
             dt date, 
             avg(price/kilos) avg_price_per_kilo ,
-            median(price/kilos) median_price
+            median(price/kilos) median_price,
+            uniq(sku, market) sampled_skus
         from base
         group by dt
         order by dt
@@ -617,7 +618,8 @@ def fetch_philippine_egg_prices():
       	select 
             dt date, 
             avg(price/pcs) avg_price_per_pc ,
-            median(price/pcs) median_pc
+            median(price/pcs) median_pc, 
+            uniq(sku, market) sampled_skus
         from base
     group by dt
     order by dt
@@ -633,6 +635,8 @@ def fetch_philippine_milk_prices():
         with base as (
         SELECT
             toDate(insert_date) dt, 
+            market,
+            sku,
             price, 
                 multiIf(
                 -- Case: "X L Y pcs" or "X L Ypcs"
@@ -698,8 +702,9 @@ def fetch_philippine_milk_prices():
             select 
                 dt, 
                 category_ category, 
-                avg(price_per_liters) avg_price_per_liter,
-                median(price_per_liters) median_price_per_liter
+                avg(price_per_liters) mean_price,
+                median(price_per_liters) median_price, 
+                uniq(sku, market) sampled_skus
             from base 
             group by 
                 dt, 
@@ -718,6 +723,7 @@ def philippine_instant_noodles_price():
             select
                 toDate(insert_date) date, 
                 sku,
+                market,
                 -- extract base grams
                 toFloat64OrNull(extract(sku, '([0-9]+)g')) AS grams,
                 
@@ -747,8 +753,9 @@ def philippine_instant_noodles_price():
             )
             select 
                 date, 
-                avg(pc_gram) * 55 avg_price, 
-                median(pc_gram) * 55 median_price
+                avg(pc_gram) * 55 mean_price, 
+                median(pc_gram) * 55 median_price,
+                uniq(sku, market) sampled_skus
             from base 
             group by 
                 date
@@ -804,10 +811,12 @@ def philippine_cooking_oil():
          SELECT
             date, 
             avg(price / adj_vol ) mean_price, 
-            median(price / adj_vol) median_price
+            median(price / adj_vol) median_price, 
+            uniq(sku, market) sampled_skus
         FROM (
         SELECT
             toDate(insert_date) date, 
+            market,
             sku,
         coalesce(
 
@@ -855,6 +864,7 @@ def fetch_philippine_onion():
         SELECT
             toDate(insert_date) date,
             sku,
+            market,
             -- min_qty
             CASE
                 WHEN isKg THEN 1000 * if(kg_val = 0, 1, kg_val)
@@ -894,7 +904,8 @@ def fetch_philippine_onion():
         select 
             date, 
             avg(stadard_price) avg_price, 
-            median(stadard_price) median_price
+            median(stadard_price) median_price,
+            uniq(sku, market) sampled_skus
         from base 
         group by date
         order by date asc 
@@ -953,7 +964,8 @@ def fetch_philippine_sugar_prices():
         select 
                 dt date, 
                 avg(standard_price) avg_price_per_kilo ,
-                median(standard_price) median_price
+                median(standard_price) median_price,
+                uniq(sku, market) sampled_skus
         from base
         group by dt
         order by dt
@@ -969,10 +981,12 @@ def philippine_instant_3_in_1_coffee_price():
         SELECT
             date, 
             avg(price / (weight*quantity) * 400) mean_price, 
-            median(price / (weight*quantity) * 400) median_price
+            median(price / (weight*quantity) * 400) median_price,
+            uniq(sku, market) sampled_skus
         FROM (
               select  
                 toDate(insert_date) date,
+                market,
                 sku, 
                 toFloat32OrZero(extract(sku, '(\\d+)\\s?g')) AS weight,
                 coalesce(

@@ -1,6 +1,7 @@
 from dash import html, dcc
 from data.queries import fetch_inflation_data
 import plotly.graph_objects as go
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_inflation_data()

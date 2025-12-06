@@ -1,6 +1,7 @@
 from dash import html, dcc, Input, Output, callback
 from data.queries import fetch_telecom_interest_sensitive_stock
 import plotly.graph_objects as go
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_telecom_interest_sensitive_stock()

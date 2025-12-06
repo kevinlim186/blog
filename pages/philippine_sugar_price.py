@@ -1,123 +1,87 @@
 from dash import html, dcc, Input, Output, ctx, callback
-import plotly.express as px
+import plotly.graph_objects as go
 from data.queries import fetch_philippine_sugar_prices
-import dash
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_philippine_sugar_prices()
     df = df.sort_values(by="date")
 
-    # Flexible column name matching
-    cols = set(df.columns)
-    avg_candidates = ["avg_price_per_kilo", "avg_kg_price"]
-    med_candidates = ["median_price", "median_kg_price"]
+    fig = go.Figure()
 
-    avg_col = next((c for c in avg_candidates if c in cols), None)
-    med_col = next((c for c in med_candidates if c in cols), None)
+    fig.add_trace(go.Scatter(
+        x=df["date"], y=df["avg_price_per_kilo"],
+        mode="lines",
+        name="Average (PHP/kg)",
+        line=dict(width=2.5)
+    ))
 
-    if not avg_col or not med_col:
-        raise ValueError(
-            f"Expected one of {avg_candidates} or {med_candidates} in DataFrame columns, got: {sorted(df.columns)}"
-        )
+    fig.add_trace(go.Scatter(
+        x=df["date"], y=df["median_price"],
+        mode="lines",
+        name="Median (PHP/kg)",
+        line=dict(width=2.5, dash="dash")
+    ))
 
-    fig = px.line(
-        df,
-        x="date",
-        y=[avg_col, med_col],
-        title="Philippine Refined Sugar Price per Kilo (Average vs Median)",
-        labels={
-            "date": "Date",
-            avg_col: "Average (PHP/kg)",
-            med_col: "Median (PHP/kg)",
-        }
-    )
-
-    # Rename trace names for clean legend labels
-    label_map = {
-        avg_col: "Average (PHP/kg)",
-        med_col: "Median (PHP/kg)"
-    }
-    for tr in fig.data:
-        if tr.name in label_map:
-            tr.name = label_map[tr.name]
+    if "sampled_skus" in df.columns:
+        fig.add_trace(go.Bar(
+            x=df["date"], y=df["sampled_skus"],
+            name="Sampled SKUs",
+            opacity=0.30,
+            marker_color=THEME_COLORS["primary"],
+            yaxis="y2",
+            hovertemplate="SKUs sampled: %{y}<extra></extra>"
+        ))
 
     fig.update_layout(
-        template="plotly_dark",
-        plot_bgcolor="#111111",
-        paper_bgcolor="#111111",
-        font=dict(color="white", family="Arial"),
-        title=dict(
-            text="Philippine Sugar Price per Kilo (Average vs Median)",
-            x=0.01,
-            xanchor="left",
-            font=dict(size=26, family="Open Sans", color="white"),
-        ),
-        margin=dict(l=30, r=30, t=100, b=50),
-        height=500,
-        hovermode="x unified",
-        yaxis=dict(gridcolor="#333"),
-        hoverlabel=dict(namelength=-1),
-        xaxis=dict(
-            tickformat="%Y-%m-%d",
-            hoverformat="%Y-%m-%d",
-            gridcolor="#333",
-            rangeselector=dict(
-                buttons=list([
-                    dict(count=7, label="1W", step="day", stepmode="backward"),
-                    dict(count=1, label="1M", step="month", stepmode="backward"),
-                    dict(count=3, label="3M", step="month", stepmode="backward"),
-                    dict(count=6, label="6M", step="month", stepmode="backward"),
-                    dict(step="all", label="All")
-                ]),
-                bgcolor="#222222",
-                font=dict(color="white", size=13),
-                activecolor="#FFCC00"
-            ),
-            type="date"
+        **CHART_TEMPLATE,
+        yaxis=dict(title="Price (PHP/kg)"),
+        yaxis2=dict(
+            title="Sample Size (SKUs)",
+            overlaying="y",
+            side="right",
+            showgrid=False
         ),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=-0.3,
-            xanchor="center",
+            y=-0.25,
             x=0.5,
-            font=dict(size=13, family="Open Sans", color="white"),
-            bgcolor="rgba(0,0,0,0)",
+            xanchor="center"
         ),
-    )
-
-    # Line styling
-    fig.for_each_trace(
-        lambda tr: tr.update(line=dict(width=2.5))
-        if tr.name == "Average (PHP/kg)"
-        else tr.update(line=dict(width=2.5, dash="dash"))
+        autosize=True
     )
 
     return html.Div([
-        html.Div([
-            dcc.Graph(id="philippine-sugar-price", figure=fig),
+        themed_card([
+            html.H2("Philippine Refined Sugar Price", style={
+                "color": THEME_COLORS["text"],
+                "marginBottom": "6px"
+            }),
+            html.P(
+                "Daily standardized refined sugar pricing across the Philippines.",
+                style={"color": "#555", "marginTop": 0}
+            ),
+            dcc.Graph(id="philippine-sugar-price", figure=fig, style={"height": "460px"}),
             html.Div([
                 html.Button(
                     "Download CSV",
                     id="download-sugar-btn",
                     n_clicks=0,
                     style={
-                        "backgroundColor": "#FFCC00",
-                        "color": "#000",
-                        "padding": "10px 20px",
+                        "backgroundColor": THEME_COLORS["primary"],
+                        "color": "#FFF",
+                        "padding": "10px 22px",
                         "border": "none",
-                        "borderRadius": "4px",
-                        "fontWeight": "bold",
-                        "fontSize": "14px",
+                        "borderRadius": "6px",
+                        "fontWeight": "600",
                         "cursor": "pointer",
-                        "marginTop": "10px",
-                        "boxShadow": "0 2px 4px rgba(0,0,0,0.3)",
-                        "transition": "background-color 0.2s ease-in-out",
-                    },
+                        "fontSize": "14px",
+                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                    }
                 ),
-                dcc.Download(id="download-sugar"),
-            ], style={"textAlign": "center"})
-        ], className="black-container")
+                dcc.Download(id="download-sugar")
+            ], style={"textAlign": "right", "marginTop": "12px"})
+        ])
     ])
 
 @callback(
@@ -127,16 +91,12 @@ def layout():
 )
 def download_sugar_data(n_clicks):
     df = fetch_philippine_sugar_prices()
-
-    cols = set(df.columns)
-    avg_candidates = ["avg_price_per_kilo", "avg_kg_price"]
-    med_candidates = ["median_price", "median_kg_price"]
-
-    avg_col = next((c for c in avg_candidates if c in cols), None)
-    med_col = next((c for c in med_candidates if c in cols), None)
-
     return dcc.send_data_frame(
-        df[["date", avg_col, med_col]].to_csv,
+        df[["date", "avg_price_per_kilo", "median_price", "sampled_skus"]].to_csv,
         "philippine_sugar_price_avg_median.csv",
         index=False
     )
+
+def get_data():
+    df = fetch_philippine_sugar_prices()
+    return df

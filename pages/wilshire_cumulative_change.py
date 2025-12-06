@@ -1,6 +1,7 @@
 import plotly.graph_objects as go
 from dash import dcc, html
 from data.queries import fetch_coporate_america_net_income_to_wilshire
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_coporate_america_net_income_to_wilshire()

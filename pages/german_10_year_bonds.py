@@ -1,64 +1,67 @@
-from dash import html, dcc, Input, Output, ctx, callback
-import plotly.express as px
+from dash import html, dcc, Input, Output, callback
+import plotly.graph_objects as go
 from data.queries import fetch_inflation_data
-import dash
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_inflation_data()
     df = df.sort_values(by='date') 
-    fig = px.line(
-        df,
-        x='date',
-        y='interpolated_yield_bond',
-        title='German Bond Rate at Constant 10-Year',
-        labels={
-            'date': 'Date',
-            'interpolated_yield_bond': 'Yield (%)'
-        }
-    )
+
+    # Create figure
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df["date"],
+        y=df["interpolated_yield_bond"],
+        mode="lines",
+        name="Yield (%)",
+        line=dict(width=2.5, color=THEME_COLORS["primary"])
+    ))
 
     fig.update_layout(
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
-        title=dict(x=0.01, xanchor='left', font=dict(size=22)),
-        margin=dict(l=30, r=30, t=60, b=40),
-        height=500,
-        hovermode='x unified',
-        yaxis=dict(gridcolor='#333'),
-        hoverlabel=dict(
-            namelength=-1
-        ),
-        xaxis=dict(
-            tickformat="%Y-%m-%d",
-            hoverformat="%Y-%m-%d",
-            gridcolor='#333'
+        **CHART_TEMPLATE,
+        yaxis=dict(title="Yield (%)"),
+        autosize=True,
+        legend=dict(
+            orientation="h",
+            y=-0.25,
+            x=0.5,
+            xanchor="center"
         )
     )
 
-    fig.update_traces(line=dict(width=2.5, color='#00FF99'))  # neon green line
-
     return html.Div([
-        html.Div([
-            dcc.Graph(id="interpolated-yield-bond", figure=fig),
+        themed_card([
+            html.H2("German Bond Rate (Constant 10-Year)", style={
+                "color": THEME_COLORS["text"],
+                "marginBottom": "6px"
+            }),
+            html.P(
+                "Daily interpolated yield for German 10-year government bonds.",
+                style={"color": "#555", "marginTop": 0}
+            ),
+            dcc.Graph(id="interpolated-yield-bond", figure=fig, style={"height": "460px"}),
+
             html.Div([
-                html.Button("Download CSV", id="download-btn", n_clicks=0, style={
-                    "backgroundColor": "#FFCC00",
-                    "color": "#000",
-                    "padding": "10px 20px",
-                    "border": "none",
-                    "borderRadius": "4px",
-                    "fontWeight": "bold",
-                    "fontSize": "14px",
-                    "cursor": "pointer",
-                    "marginTop": "10px",
-                    "boxShadow": "0 2px 4px rgba(0,0,0,0.3)",
-                    "transition": "background-color 0.2s ease-in-out"
-                }),
+                html.Button(
+                    "Download CSV",
+                    id="download-btn",
+                    n_clicks=0,
+                    style={
+                        "backgroundColor": THEME_COLORS["primary"],
+                        "color": "#FFF",
+                        "padding": "10px 22px",
+                        "border": "none",
+                        "borderRadius": "6px",
+                        "fontWeight": "600",
+                        "cursor": "pointer",
+                        "fontSize": "14px",
+                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                    }
+                ),
                 dcc.Download(id="download-bonds")
-            ], style={"textAlign": "center"})
-        ], className="black-container")
+            ], style={"textAlign": "right", "marginTop": "12px"})
+        ])
     ])
 
 @callback(
@@ -69,3 +72,10 @@ def layout():
 def download_inflation_data(n_clicks):
     df = fetch_inflation_data()
     return dcc.send_data_frame(df[[ 'date', 'interpolated_yield_bond']].to_csv, "german_10_year_bonds.csv", index=False)
+
+
+def get_data():
+    df = fetch_inflation_data()
+    df = df[[ 'date', 'interpolated_yield_bond']]
+    df = df.sort_values(by='date') 
+    return df

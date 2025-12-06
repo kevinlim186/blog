@@ -3,6 +3,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
 from data.queries import fetch_commitment_of_traders
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = fetch_commitment_of_traders()

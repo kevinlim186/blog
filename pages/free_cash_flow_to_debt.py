@@ -2,11 +2,11 @@ from dash import html, dcc, callback, Input, Output
 import plotly.express as px
 from data.queries import fetch_debt_free_cash_flow_by_industry
 from dash.dcc import send_data_frame
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     # Fetch and prepare data
     df = fetch_debt_free_cash_flow_by_industry()
-    print(df)
     df = df.sort_values(by=['year', 'category'])
     df = df[(df['year'] >= 2010) & (df['category'] != 'Crypto Assets')]
 

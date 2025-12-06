@@ -1,7 +1,7 @@
 from dash import html, dcc, Input, Output, callback
-import plotly.express as px
 import plotly.graph_objects as go
 from data.queries import philippine_detergent_powder
+from theme import CHART_TEMPLATE, THEME_COLORS, themed_card
 
 def layout():
     df = philippine_detergent_powder()
@@ -36,28 +36,15 @@ def layout():
         y=df["sampled_skus"],
         name="Sampled SKUs",
         opacity=0.25,
-        marker_color="#AAAAAA",
+        marker_color=THEME_COLORS["primary"],
         yaxis="y2",
         hovertemplate="SKUs sampled: %{y}<extra></extra>"
     ))
 
     fig.update_layout(
-        template="plotly_dark",
-        plot_bgcolor="#111111",
-        paper_bgcolor="#111111",
-        font=dict(color="white", family="Arial"),
-        title=dict(
-            text="Philippine Detergent Powder Prices — Standardized to 2kg",
-            x=0.01,
-            xanchor="left",
-            font=dict(size=26, family="Open Sans", color="white"),
-        ),
-        height=500,
-        margin=dict(l=30, r=30, t=100, b=50),
-        hovermode="x unified",
+        **CHART_TEMPLATE,
         yaxis=dict(
-            title="Price (PHP per 2kg)",
-            gridcolor="#333"
+            title="Price (PHP per 2kg)"
         ),
         yaxis2=dict(
             title="Sample Size (SKUs)",
@@ -67,38 +54,48 @@ def layout():
         ),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=-0.3,
-            xanchor="center",
+            y=-0.25,
             x=0.5,
-            bgcolor="rgba(0,0,0,0)",
-        )
+            xanchor="center"
+        ),
+        autosize=True
     )
 
     return html.Div([
-        html.Div([
-            dcc.Graph(id="ph-detergent-price", figure=fig),
+        themed_card([
+            html.H2("Philippine Detergent Powder Prices (2kg)", style={
+                "color": THEME_COLORS["text"],
+                "marginBottom": "6px"
+            }),
+            html.P(
+                "Daily standardized detergent powder pricing and SKU availability across the Philippines.",
+                style={"color": "#555", "marginTop": 0}
+            ),
+            dcc.Graph(
+                id="ph-detergent-price",
+                figure=fig,
+                style={"height": "460px"}
+            ),
             html.Div([
                 html.Button(
                     "Download CSV",
                     id="download-detergent-btn",
                     n_clicks=0,
                     style={
-                        "backgroundColor": "#FFCC00",
-                        "color": "#000",
-                        "padding": "10px 20px",
+                        "backgroundColor": THEME_COLORS["primary"],
+                        "color": "#FFF",
+                        "padding": "10px 22px",
                         "border": "none",
-                        "borderRadius": "4px",
-                        "fontWeight": "bold",
-                        "fontSize": "14px",
+                        "borderRadius": "6px",
+                        "fontWeight": "600",
                         "cursor": "pointer",
-                        "marginTop": "10px",
-                        "boxShadow": "0 2px 4px rgba(0,0,0,0.3)",
-                    },
+                        "fontSize": "14px",
+                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                    }
                 ),
-                dcc.Download(id="download-detergent"),
-            ], style={"textAlign": "center"})
-        ], className="black-container")
+                dcc.Download(id="download-detergent")
+            ], style={"textAlign": "right", "marginTop": "12px"})
+        ])
     ])
 
 @callback(
@@ -108,9 +105,12 @@ def layout():
 )
 def download_detergent_data(n_clicks):
     df = philippine_detergent_powder()
-
     return dcc.send_data_frame(
         df[["date", "mean_price", "median_price", "sampled_skus"]].to_csv,
         "philippine_detergent_powder_2kg.csv",
         index=False
     )
+
+def get_data():
+    df = philippine_detergent_powder()
+    return df

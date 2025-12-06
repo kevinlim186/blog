@@ -1,7 +1,7 @@
 from numba import jit, prange
 import numpy as np
 from scipy.stats import linregress
-
+from dash import dcc
 
 @jit(nopython=True, cache=True)
 def ols_regression(y, X):
@@ -81,3 +81,17 @@ def getBinsFromTrend(close,span,threshold,slope_threshold):
         t_values[idx] = best_t_val
         slopes[idx] =best_slope
     return out, t_values, slopes
+
+def find_graph(component):
+    if isinstance(component, dcc.Graph):
+        return component.figure
+    if hasattr(component, "children"):
+        children = component.children
+        if isinstance(children, list):
+            for child in children:
+                result = find_graph(child)
+                if result:
+                    return result
+        else:
+            return find_graph(children)
+    return None
