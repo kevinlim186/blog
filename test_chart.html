@@ -10,45 +10,30 @@
     <div id="chart-container"></div>
 
     <script>
-    // Load and inject embed HTML
-    fetch("http://localhost:8050/api/us-companies-cashflow-tax")
-        .then(r => r.text())
-        .then(html => {
-            const container = document.getElementById("chart-container");
-            // Inject the HTML (this adds the script tags, but doesn't execute them)
-            container.innerHTML = html;
-
-            // IMPORTANT: Manually clone and execute embedded <script> tags
-            const scripts = container.querySelectorAll("script");
-            
-            // Use an array to store scripts
-            const scriptsToExecute = [];
-            
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement("script");
-
-                // Copy attributes (for 'src')
-                for (const attr of oldScript.attributes) {
-                    newScript.setAttribute(attr.name, attr.value);
-                }
-
-                // Copy content (for inline Plotly script)
-                if (!oldScript.src) {
-                    newScript.textContent = oldScript.textContent;
-                }
-
-                scriptsToExecute.push(newScript);
-                
-                // Remove original script from the injected HTML
-                oldScript.remove();
-            });
-
-            // Append clones to the document body to force execution
-            scriptsToExecute.forEach(script => {
-                document.body.appendChild(script);
-            });
-        })
-        .catch(error => console.error('Error fetching chart embed:', error));
+        fetch("https://visualization.yellowplannet.com/api/philippine_sardines")
+                .then(r => r.text())
+                .then(html => {
+                    const container = document.getElementById("chart-container");
+                    container.innerHTML = html;
+                    const scripts = container.querySelectorAll("script");
+                    
+                    const scriptsToExecute = [];
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement("script");
+                        for (const attr of oldScript.attributes) {
+                            newScript.setAttribute(attr.name, attr.value);
+                        }
+                        if (!oldScript.src) {
+                            newScript.textContent = oldScript.textContent;
+                        }
+                        scriptsToExecute.push(newScript);
+                        oldScript.remove();
+                    });
+                    scriptsToExecute.forEach(script => {
+                        document.body.appendChild(script);
+                    });
+                })
+                .catch(error => console.error('Error fetching chart embed:', error));
     </script>
 
 </body>

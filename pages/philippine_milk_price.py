@@ -62,12 +62,12 @@ def layout():
                 "Daily standardized dairy milk pricing across the Philippines.",
                 style={"color": "#555", "marginTop": 0}
             ),
-            dcc.Graph(id="philippine-milk-alt", figure=fig, style={"height": "460px"}),
+            dcc.Graph(id="philippine-milk", figure=fig, style={"height": "460px"}),
 
             html.Div([
                 html.Button(
                     "Download CSV",
-                    id="download-alt-milk-btn",
+                    id="download-milk-btn",
                     n_clicks=0,
                     style={
                         "backgroundColor": THEME_COLORS["primary"],
@@ -81,7 +81,7 @@ def layout():
                         "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
                     }
                 ),
-                dcc.Download(id="download-alt-milk")
+                dcc.Download(id="download-milk")
             ], style={"textAlign": "right", "marginTop": "12px"})
         ])
     ])
