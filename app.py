@@ -219,7 +219,7 @@ def refresh_cache():
 
 @app.server.route('/api/<pathname>')
 def api_router(pathname):
-    div_id = request.args.get('div_id', 'plotly-chart')
+    div_id = f"{pathname}-chart"
 
     if pathname not in API_FIGURES:
         return Response(f"Unknown API endpoint: {pathname}", status=404)
