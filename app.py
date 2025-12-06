@@ -270,83 +270,37 @@ def api_router(pathname):
         {json_ld_annotation}
         
         <div style='
-            background: white;
-            border-radius: 10px;
-            padding: 22px 26px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            margin-bottom: 28px;
-            border: 1px solid #eee;
-        '>
-            <h2 style='
-                color: #222;
-                margin-bottom: 6px;
-                font-weight: 700;
-                font-size: 24px;
             '>
-                {extracted_title}
-            </h2>
-
-            <p style='color:#555; margin-top:0; margin-bottom:16px;'>
-                {extracted_desc}
-            </p>
-
             <div id="{div_id}" style="height:100%; width:100%; min-height:460px;"></div>
             <br>
             
-            <div style="text-align:center; margin-top:12px;">
-                <a 
-                    href="https://visualization.yellowplannet.com/api/{pathname}/data"
-                    style="
-                        /* Professional Palette: Dark Blue/White, Muted Accent */
-                        background-color: #243E82; /* Deep Blue Button (Primary Color) */
-                        color: white; /* White text for contrast */
-                        border: 1px solid #1A316A;
-                        padding: 10px 18px;
-                        border-radius: 4px;
-                        text-decoration: none;
-                        font-weight: 600;
-                        font-size: 14px;
-                        transition: background-color 0.2s;
-                        display: inline-flex;
-                        align-items: center;
-                        /* Subtler shadow */
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-                    "
-                    onmouseover="this.style.backgroundColor='#1A316A'" 
-                    onmouseout="this.style.backgroundColor='#243E82'"
-                >
-                    Download Raw Data
-                </a>
-                
-                <p style="
-                    color: #777; 
-                    font-size: 11px; 
-                    margin-top: 10px;
-                    margin-bottom: 0;
-                ">
-                    Data provided by <strong style="color:grey;">yellowplannet.com</strong>
-                </p>
             </div>
-        </div>
         
         {table_html}
 
         <script>
+        // The unique div ID is passed directly into the JS function call
+        const uniqueDivId = "{div_id}"; 
         const fig = {figure_json};
-        Plotly.newPlot("{div_id}", fig.data, fig.layout, {{responsive: true}});
         
-        // Add window resize listener for responsiveness
-        const chartId = "{div_id}";
-        window.addEventListener('resize', () => {{
-            const chartDiv = document.getElementById(chartId);
-            if (chartDiv && typeof Plotly !== 'undefined') {{
-                Plotly.relayout(chartDiv, {{ autosize: true }});
-            }}
-        }});
+        Plotly.newPlot(uniqueDivId, fig.data, fig.layout, {{responsive: true}});
+        
+        // Use an anonymous function wrapper to avoid polluting the global scope
+        (function() {{
+            const chartId = uniqueDivId;
+            window.addEventListener('resize', function() {{
+                const chartDiv = document.getElementById(chartId);
+                if (chartDiv && typeof Plotly !== 'undefined') {{
+                    Plotly.relayout(chartDiv, {{ autosize: true }});
+                }}
+            }});
+        }})();
         </script>
         """
 
     return Response(embed_html, mimetype="text/html")
+
+
 
 @app.server.route("/api/<pathname>/data")
 def api_data(pathname):
