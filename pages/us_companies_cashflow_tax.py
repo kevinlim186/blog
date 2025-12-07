@@ -93,7 +93,7 @@ def layout():
             xanchor='center',
             title=''
         ),
-        margin=dict(b=80)
+        margin=dict(b=80, t=150)
     )
 
     for i in range(1, n_industries + 1):

@@ -10,7 +10,7 @@
     <div id="chart-container"></div>
 
     <script>
-        fetch("http://localhost:8050/api/wilshire-total-net-income")
+        fetch("http://localhost:8050/api/us-companies-cashflow-tax")
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById("chart-container");
