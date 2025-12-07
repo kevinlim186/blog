@@ -174,7 +174,6 @@ def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
             "encodingFormat": data_format,
             "contentUrl": data_url
         },
-        "license": "© YellowPlannet.com — All rights reserved.",
         "variableMeasured": ", ".join(columns),
         "dateModified": date_modified
     }
