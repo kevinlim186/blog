@@ -37,7 +37,7 @@ CHART_TEMPLATE = {
         y=-0.25,
         x=0.0,
         xanchor="left",
-        font=dict(size=10),
+        font=dict(size=12),
     ),
 
 }
@@ -69,7 +69,7 @@ def themed_card(children, title=None, description=None, style=None):
             if description:
                 full_title = (
                     f"{title}"
-                    f"<br><span style='font-size:10px; color:{THEME_COLORS['textMuted']};"
+                    f"<br><span style='font-size:12px; color:{THEME_COLORS['textMuted']};"
                     f" font-family:sans-serif;'>{description} <br><b>Data provided by <b>yellowplannet.com</b></span>"
                 )
 
@@ -78,7 +78,7 @@ def themed_card(children, title=None, description=None, style=None):
                     text=full_title,
                     x=0.05,
                     xanchor="left",
-                    font=dict(size=14, color=THEME_COLORS["text"], family="sans-serif"), 
+                    font=dict(size=16, color=THEME_COLORS["text"], family="sans-serif"), 
                     
                 )
             )
