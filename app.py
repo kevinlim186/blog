@@ -299,7 +299,7 @@ def api_router(pathname):
                         border-radius: 4px;
                         text-decoration: none;
                         font-weight: 600;
-                        font-size: 8px;
+                        font-size: 16px;
                         transition: background-color 0.2s;
                         display: inline-flex;
                         align-items: center;
@@ -309,7 +309,7 @@ def api_router(pathname):
                     onmouseover="this.style.backgroundColor='#1A316A'" 
                     onmouseout="this.style.backgroundColor='#243E82'"
                 >
-                    Download Raw Data
+                    Download
                 </a>
                 
             </div>
