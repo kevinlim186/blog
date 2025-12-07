@@ -50,55 +50,43 @@ def layout():
             side="right",
             showgrid=False
         ),
-        autosize=True,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
+        autosize=True,  
     )
-
-    return html.Div([
-        themed_card([
-            html.H2("Philippine Cooking Oil Prices", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily standardized cooking oil pricing across the Philippines.",
-                style={"color": "#555", "marginTop": 0}
-            ),
-            dcc.Graph(
-                id="philippine-cooking-oil-price",
-                figure=fig,
-                style={"height": "460px"}
-            ),
-            html.Div([
-                html.Button(
-                    "Download CSV",
-                    id="download-btn",
-                    n_clicks=0,
-                    style={
-                        "backgroundColor": THEME_COLORS["primary"],
-                        "color": "#FFF",
-                        "padding": "10px 22px",
-                        "border": "none",
-                        "borderRadius": "6px",
-                        "fontWeight": "600",
-                        "cursor": "pointer",
-                        "fontSize": "14px",
-                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
-                    }
+    return themed_card(
+            title="Philippine Cooking Oil Prices",
+            description="Daily standardized cooking oil pricing across the Philippines.",
+            children=[
+                dcc.Graph(
+                    id="philippine-cooking-oil-price",
+                    figure=fig,
+                    style={"height": "460px"}
                 ),
-                dcc.Download(id="download-cooking-oil")
-            ], style={"textAlign": "right", "marginTop": "12px"}),
-            html.P(
-                "Note: Prices are standardized to PHP per liter.",
-                style={"color": "#555", "fontStyle": "italic", "marginTop": "10px"}
-            )
-        ])
-    ])
+                html.Div([
+                    html.Button(
+                        "Download CSV",
+                        id="download-btn",
+                        n_clicks=0,
+                        style={
+                            "backgroundColor": THEME_COLORS["primary"],
+                            "color": "#FFF",
+                            "padding": "10px 22px",
+                            "border": "none",
+                            "borderRadius": "6px",
+                            "fontWeight": "600",
+                            "cursor": "pointer",
+                            "fontSize": "14px",
+                            "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                        }
+                    ),
+                    dcc.Download(id="download-cooking-oil")
+                ], style={"textAlign": "right", "marginTop": "12px"}),
+
+                html.P(
+                    "Note: Prices are standardized to PHP per liter.",
+                    style={"color": THEME_COLORS["textMuted"], "fontStyle": "italic", "marginTop": "10px"}
+                )
+            ]
+        )
 
 @callback(
     Output("download-cooking-oil", "data"),

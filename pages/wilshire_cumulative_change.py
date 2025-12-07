@@ -18,7 +18,7 @@ def layout():
         x=df['year'],
         y=df['total_net_income_change'],
         name="Net Income Cumulative Change (%)",
-        line=dict(color="#00FF99", width=2.5),
+        line=dict(color=THEME_COLORS["primary"], width=2.5),
         hovertemplate='Net Income Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
 
@@ -27,7 +27,7 @@ def layout():
         x=df['year'],
         y=df['willshire5000_cumulative_change'],
         name="Wilshire 5000 Cumulative Change (%)",
-        line=dict(color="#3399FF", width=2.5, dash='dot'),
+        line=dict(color=THEME_COLORS["secondary"], width=2.5, dash='dot'),
         hovertemplate='Wilshire 5000 Change: %{y:.2f}%<br>Year: %{x|%Y}<extra></extra>'
     ))
     # Label selected years
@@ -42,7 +42,7 @@ def layout():
         name='Net Income Labels',
         text=[f"{y:.0f}%" for y in label_df['total_net_income_change']],
         textposition='top left',
-        marker=dict(color='#00FF99', size=6),
+        marker=dict(color=THEME_COLORS["primary"], size=6),
         textfont=dict(size=12),
         showlegend=False
     ))
@@ -55,30 +55,18 @@ def layout():
         name='Wilshire 5000 Labels',
         text=[f"{y:.0f}%" for y in label_df['willshire5000_cumulative_change']],
         textposition='top right',
-        marker=dict(color='#3399FF', size=6),
+        marker=dict(color=THEME_COLORS["secondary"], size=6),
         textfont=dict(size=12),
         showlegend=False
     ))
 
     fig.update_layout(
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
+        **CHART_TEMPLATE,
         height=600,
-        margin=dict(l=40, r=60, t=60, b=100),
-        title=dict(
-            text="Cumulative Change: Wilshire 5000 vs Corporate America Net Income",
-            x=0.01,
-            xanchor='left',
-            font=dict(size=22)
-        ),
-        hovermode='x unified',
-
         xaxis=dict(
             title="Year",
             tickformat="%Y",
-            gridcolor='#333',
+            gridcolor=THEME_COLORS["grid"],
             showspikes=True,
             spikemode='across',
             spikesnap='cursor'
@@ -87,7 +75,7 @@ def layout():
         yaxis=dict(
             title="Cumulative Change (%)",
             tickformat=".1f",
-            gridcolor='#333'
+            gridcolor=THEME_COLORS["grid"]
         ),
 
         legend=dict(
@@ -102,8 +90,10 @@ def layout():
         hoverlabel=dict(namelength=-1)
     )
 
-    return html.Div([
-        html.Div([
-            dcc.Graph(id="wilshire5000-vs-net-income-cumulative", figure=fig),
-        ], className="black-container")
-    ])
+    return themed_card(
+        [
+            dcc.Graph(id="wilshire5000-vs-net-income-cumulative", figure=fig)
+        ],
+        title="Cumulative Change: Wilshire 5000 vs Corporate America Net Income",
+        description="A comparison of long-term cumulative performance between U.S. corporate net income and the Wilshire 5000 index."
+    )

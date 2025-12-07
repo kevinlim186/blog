@@ -23,26 +23,17 @@ def layout():
 
         yaxis=dict(title="Breakeven Inflation (%)"),
         autosize=True,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("German 10-Year Breakeven Inflation", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily interpolated breakeven inflation for German 10-year bonds.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+        title="German 10-Year Breakeven Inflation",
+        description="Daily interpolated breakeven inflation for German 10-year bonds.",
+        children=[
+            dcc.Graph(
+                id="german-breakeven-inflation-graph",
+                figure=fig,
+                style={"height": "460px"}
             ),
-            dcc.Graph(id="german-breakeven-inflation-graph", figure=fig, style={"height": "460px"}),
-
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -62,8 +53,8 @@ def layout():
                 ),
                 dcc.Download(id="download-breakeven-inflation-data")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-breakeven-inflation-data", "data"),

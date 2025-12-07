@@ -72,13 +72,6 @@ def layout():
         ),
         margin=dict(t=200, l=50, r=50, b=80),  # increased top margin for more space below title
         hovermode='x unified',
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.2,
-            xanchor="center",
-            x=0.5
-        )
     )
 
     for i, (_, title) in enumerate(dimensions, start=1):

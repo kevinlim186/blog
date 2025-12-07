@@ -44,28 +44,18 @@ def layout():
             side="right",
             showgrid=False
         ),
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        ),
         autosize=True
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("Philippine Egg Prices (Per Piece)", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily standardized average and median egg prices across the Philippines.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+        title="Philippine Egg Prices (Per Piece)",
+        description="Daily standardized average and median egg prices across the Philippines.",
+        children=[
+            dcc.Graph(
+                id="philippine-egg-price",
+                figure=fig,
+                style={"height": "460px"}
             ),
-
-            dcc.Graph(id="philippine-egg-price", figure=fig, style={"height": "460px"}),
-
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -85,8 +75,8 @@ def layout():
                 ),
                 dcc.Download(id="download-egg")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-egg", "data"),

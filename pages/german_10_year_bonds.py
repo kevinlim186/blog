@@ -22,26 +22,13 @@ def layout():
         **CHART_TEMPLATE,
         yaxis=dict(title="Yield (%)"),
         autosize=True,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("German Bond Rate (Constant 10-Year)", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily interpolated yield for German 10-year government bonds.",
-                style={"color": "#555", "marginTop": 0}
-            ),
+    return themed_card(
+        title="German Bond Rate (Constant 10-Year)",
+        description="Daily interpolated yield for German 10-year government bonds.",
+        children=[
             dcc.Graph(id="interpolated-yield-bond", figure=fig, style={"height": "460px"}),
-
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -61,8 +48,8 @@ def layout():
                 ),
                 dcc.Download(id="download-bonds")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-bonds", "data"),

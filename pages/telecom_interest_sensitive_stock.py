@@ -23,10 +23,10 @@ def layout():
 
     tickers = df['ticker'].unique()
     color_map = {
-        'T': '#00FF99',
-        'VZ': '#3399FF',
-        'CCOI': '#FFCC00',
-        'SP500': '#FF66CC'
+        'T': THEME_COLORS.get("primary", "#005BBB"),
+        'VZ': THEME_COLORS.get("secondary", "#2F80ED"),
+        'CCOI': THEME_COLORS.get("accent", "#F2C94C"),
+        'SP500': THEME_COLORS.get("benchmark", "#8B8B8B"),
     }
 
     # Add cumulative gain lines
@@ -47,39 +47,27 @@ def layout():
         name='Interest Rate',
         yaxis='y1',
         mode='lines+markers',
-        line=dict(width=2.5, color='white'),
+        line=dict(width=2.5, color=THEME_COLORS["primary"]),
         fill='tozeroy',
-        fillcolor='rgba(255, 255, 255, 0.08)',
-        marker=dict(size=4, color='white'),
+        fillcolor='rgba(0, 91, 187, 0.10)',
+        marker=dict(size=4, color=THEME_COLORS["primary"]),
         hovertemplate='Rate: %{y:.2f}%<br>Date: %{x|%Y-%m-%d}<extra></extra>',
         
     ))
 
     fig.update_layout(
-        title=dict(
-            text='Interest Rates and Cumulative Gains by Ticker',
-            x=0.01,
-            xanchor='left',
-            font=dict(size=22)
-        ),
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
-        height=550,
-        margin=dict(l=30, r=30, t=60, b=40),
-        hovermode='x unified',
+        **CHART_TEMPLATE,
         xaxis=dict(
             title='Date',
             tickformat="%b %Y",
             hoverformat="%Y-%m-%d",
-            gridcolor='#333'
+            gridcolor=THEME_COLORS["grid"]
         ),
         yaxis=dict(
             title='Interest Rate (%)',
             side='left',
             showgrid=True,
-            gridcolor='#333',
+            gridcolor=THEME_COLORS["grid"],
             zeroline=False,
             range=[center_rate - range_rate/2 - buffer_rate, center_rate + range_rate/2 + buffer_rate]
         ),
@@ -91,19 +79,16 @@ def layout():
             zeroline=False,
             range=[center_gain - range_gain/2 - buffer_gain, center_gain + range_gain/2 + buffer_gain]
         ),
-        legend=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.15,  # Push further down below x-axis labels
-            xanchor='center',
-            x=0.5,
-            font=dict(size=12)
-        ),
         hoverlabel=dict(namelength=-1)
     )
 
-    return html.Div([
-        html.Div([
-            dcc.Graph(id="interest-vs-stock-gain", figure=fig)
-        ], className="black-container")
-    ])
+    return themed_card(
+        title="Interest Rates vs Telecom Stock Performance",
+        description="Comparison of U.S. interest rate movements and cumulative gains for interest-sensitive telecom stocks.",
+        children=[
+            dcc.Graph(
+                id="interest-vs-stock-gain",
+                figure=fig
+            )
+        ]
+    )

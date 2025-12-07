@@ -43,27 +43,17 @@ def layout():
             side="right",
             showgrid=False
         ),
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        ),
         autosize=True,
     )
-
-    return html.Div([
-        themed_card([
-            html.H2("Philippine Non-Dairy Milk Prices — Alternatives", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily standardized non-dairy milk pricing across the Philippines.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+        title="Philippine Non-Dairy Milk Prices — Alternatives",
+        description="Daily standardized non-dairy milk pricing across the Philippines.",
+        children=[
+            dcc.Graph(
+                id="philippine-milk-alt",
+                figure=fig,
+                style={"height": "460px"}
             ),
-            dcc.Graph(id="philippine-milk-alt", figure=fig, style={"height": "460px"}),
-
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -83,8 +73,8 @@ def layout():
                 ),
                 dcc.Download(id="download-alt-milk")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-alt-milk", "data"),

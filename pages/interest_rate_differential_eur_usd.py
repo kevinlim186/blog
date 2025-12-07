@@ -29,40 +29,31 @@ def layout():
         y=df["German 10-Year Bond Yield (%)"],
         mode="lines",
         name="German 10-Year Bond Yield (%)",
-        line=dict(width=2.5, dash="dash", color="#888")
+        line=dict(width=2.5, dash="dash", color=THEME_COLORS["secondary"])
     ))
 
     fig.update_layout(
         **CHART_TEMPLATE,
         yaxis=dict(title="Yield (%)"),
         autosize=True,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
     )
-
-    return html.Div([
-        themed_card([
-            html.H2("U.S. vs German 10-Year Bond Yields", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Comparison of long-term interest rates between U.S. and Germany.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+        title="U.S. vs German 10-Year Bond Yields",
+        description="Comparison of long-term interest rates between the U.S. and Germany.",
+        children=[
+            dcc.Graph(
+                id="bond-yields-comparison",
+                figure=fig,
+                style={"height": "460px"}
             ),
-            dcc.Graph(id="bond-yields-comparison", figure=fig, style={"height": "460px"}),
             html.Div([
                 html.Button(
                     "Download CSV",
                     id="download-btn-interest-rate-differential-eur-usd",
                     n_clicks=0,
                     style={
-                        "backgroundColor": THEME_COLORS["primary"],
-                        "color": "#FFF",
+                        "backgroundColor": THEME_COLORS["button"],
+                        "color": THEME_COLORS["buttonText"],
                         "padding": "10px 22px",
                         "border": "none",
                         "borderRadius": "6px",
@@ -74,8 +65,8 @@ def layout():
                 ),
                 dcc.Download(id="download-bonds-interest-rate-differential-eur-usd")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-bonds-interest-rate-differential-eur-usd", "data"),

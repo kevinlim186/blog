@@ -22,50 +22,38 @@ def layout():
         **CHART_TEMPLATE,
         yaxis=dict(title="Inflation-Protected Yield (%)"),
         autosize=True,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("German 10-Year Inflation-Protected Rate", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily interpolated real yield for German 10-year inflation-linked bonds.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+    title="German 10-Year Inflation-Protected Rate",
+    description="Daily interpolated real yield for German 10-year inflation-linked bonds.",
+    children=[
+        dcc.Graph(
+            id="german-10-year-inflation-protected-rate",
+            figure=fig,
+            style={"height": "460px"}
+        ),
+        html.Div([
+            html.Button(
+                "Download CSV",
+                id="download-btn",
+                n_clicks=0,
+                style={
+                    "backgroundColor": THEME_COLORS["primary"],
+                    "color": "#FFF",
+                    "padding": "10px 22px",
+                    "border": "none",
+                    "borderRadius": "6px",
+                    "fontWeight": "600",
+                    "cursor": "pointer",
+                    "fontSize": "14px",
+                    "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+                }
             ),
-            dcc.Graph(
-                id="german-10-year-inflation-protected-rate",
-                figure=fig,
-                style={"height": "460px"}
-            ),
-            html.Div([
-                html.Button(
-                    "Download CSV",
-                    id="download-btn",
-                    n_clicks=0,
-                    style={
-                        "backgroundColor": THEME_COLORS["primary"],
-                        "color": "#FFF",
-                        "padding": "10px 22px",
-                        "border": "none",
-                        "borderRadius": "6px",
-                        "fontWeight": "600",
-                        "cursor": "pointer",
-                        "fontSize": "14px",
-                        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
-                    }
-                ),
-                dcc.Download(id="download-inflation-protected-data")
-            ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+            dcc.Download(id="download-inflation-protected-data")
+        ], style={"textAlign": "right", "marginTop": "12px"})
+    ]
+)
 
 @callback(
     Output("download-inflation-protected-data", "data"),

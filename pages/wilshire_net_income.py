@@ -15,7 +15,7 @@ def layout():
         y=df['total_net_income'],
         name="Total Net Income",
         yaxis="y1",
-        line=dict(color="#00FF99", width=2.5),
+        line=dict(color=THEME_COLORS["primary"], width=2.5),
         hovertemplate='Total Income: %{y:$.2s}<br>Year: %{x|%Y}<extra></extra>'
     ))
 
@@ -25,7 +25,7 @@ def layout():
         y=df['avg_price'],
         name="Wilshire 5000 Index",
         yaxis="y2",
-        line=dict(color="#3399FF", width=2.5, dash="dot"),
+        line=dict(color=THEME_COLORS["secondary"], width=2.5, dash="dot"),
         hovertemplate='Wilshire 5000: %{y:.0f}<br>Year: %{x|%Y}<extra></extra>'
     ))
     # Annotate selected years
@@ -40,7 +40,7 @@ def layout():
         name='Income Labels',
         text = [f"${y/1e9:.1f}B" for y in label_df['total_net_income']],
         textposition='top left',
-        marker=dict(color='#00FF99', size=6),
+        marker=dict(color=THEME_COLORS["primary"], size=6),
         textfont=dict(size=12),
         yaxis='y1',
         showlegend=False
@@ -59,24 +59,12 @@ def layout():
     ticktext = [f"${x/1e9:.1f}B" for x in ticks]
 
     fig.update_layout(
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
+        **CHART_TEMPLATE,
         height=600,
-        margin=dict(l=40, r=60, t=60, b=100),
-        title=dict(
-            text="Wilshire 5000 vs Total Net Income of Corporate America",
-            x=0.01,
-            xanchor='left',
-            font=dict(size=22)
-        ),
-        hovermode='x unified',
-
         xaxis=dict(
             title="Year",
             tickformat="%Y",
-            gridcolor='#333',
+            gridcolor=THEME_COLORS["grid"],
             showspikes=True,
             spikemode='across',
             spikesnap='cursor'
@@ -86,7 +74,7 @@ def layout():
             title="Net Income (USD)",
             tickvals=tickvals.tolist(),
             ticktext=ticktext,
-            gridcolor='#333'
+            gridcolor=THEME_COLORS["grid"]
         ),
 
         yaxis2=dict(
@@ -109,8 +97,10 @@ def layout():
 
         hoverlabel=dict(namelength=-1)
     )
-    return html.Div([
-        html.Div([
-            dcc.Graph(id="wilshire-vs-net-income", figure=fig),
-        ], className="black-container")
-    ])
+    return themed_card(
+        title="Wilshire 5000 vs Total Net Income of Corporate America",
+        description="A long-term comparison of corporate America's net income against movements in the Wilshire 5000 index.",
+        children=[
+            dcc.Graph(id="wilshire-vs-net-income", figure=fig)
+        ]
+    )

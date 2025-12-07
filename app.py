@@ -45,7 +45,7 @@ PAGE_LAYOUTS = {
     "philippine-onion-price-history": philippine_onion_price,
     "philippine-sugar-history": philippine_sugar_price,
     "philippine-detergent-powder": philippine_detergent_powder,
-    "philippine_sardines": philippine_sardines,
+    "philippine-sardines": philippine_sardines,
 }
 
 # Same mapping for API figure extraction
@@ -227,25 +227,31 @@ def api_router(pathname):
     layout = API_FIGURES[pathname].layout()
     fig = find_graph(layout)
 
-    # Extract title and description from layout
-    card = layout.children[0]
-    elements = card.children
-
     extracted_title = ""
     extracted_desc = ""
 
-    for el in elements:
-        if isinstance(el, html.H2):
-            # Assumes children is a single string or list of strings
-            extracted_title = "".join(map(str, el.children)) if isinstance(el.children, list) else str(el.children)
-        elif isinstance(el, html.P):
-            # Assumes children is a single string or list of strings
-            extracted_desc = "".join(map(str, el.children)) if isinstance(el.children, list) else str(el.children)
+    # Extract title directly from fig (template-injected or layout-defined)
+    try:
+        if fig.layout.title and fig.layout.title.text:
+            extracted_title = fig.layout.title.text
+        else:
+            extracted_title = pathname.replace("-", " ").title()
+    except Exception:
+        extracted_title = pathname.replace("-", " ").title()
 
-    if not extracted_title:
-        extracted_title = pathname.replace('-', ' ').title()
+    # Extract description from annotation injected by themed_card
+    try:
+        if fig.layout.annotations:
+            # Subtitle annotation should be in a known y-range
+            for ann in fig.layout.annotations:
+                if 1.05 <= ann.y <= 1.20:
+                    extracted_desc = ann.text
+                    break
+    except Exception:
+        pass
+
     if not extracted_desc:
-        extracted_desc = "Automatically generated chart embed."
+        extracted_desc = ""
 
     if fig is None:
         return Response(f"No figure found for {pathname}", status=404)
@@ -277,31 +283,10 @@ def api_router(pathname):
             margin-bottom: 28px;
             border: 1px solid #eee;
         '>
-            <h2 style='
-                color: #222;
-                margin-bottom: 6px;
-                font-weight: 700;
-                font-size: 24px;
-            '>
-                {extracted_title}
-            </h2>
-
-            <p style='color:#555; margin-top:0; margin-bottom:16px;'>
-                {extracted_desc}
-            </p>
 
             <div id="{div_id}" style="height:100%; width:100%; min-height:460px;"></div>
 
             <div style="text-align:center; margin-top:12px;">
-                 <p style="
-                    color: #777; 
-                    font-size: 11px; 
-                    margin-top: 10px;
-                    margin-bottom: 0;
-                ">
-                    Data provided by <strong style="color:grey;">yellowplannet.com</strong>
-                </p>
-                <br><br>
                 <a 
                     href="https://visualization.yellowplannet.com/api/{pathname}/data"
                     class="download-chart-data"
@@ -310,11 +295,11 @@ def api_router(pathname):
                         background-color: #243E82; /* Deep Blue Button (Primary Color) */
                         color: white; /* White text for contrast */
                         border: 1px solid #1A316A;
-                        padding: 10px 18px;
+                        padding: 5px 9px;
                         border-radius: 4px;
                         text-decoration: none;
                         font-weight: 600;
-                        font-size: 14px;
+                        font-size: 8px;
                         transition: background-color 0.2s;
                         display: inline-flex;
                         align-items: center;

@@ -42,26 +42,18 @@ def layout():
             side='right',
             showgrid=False
         ),
-        legend=dict(
-            orientation='h',
-            y=-0.25,
-            x=0.5,
-            xanchor='center'
-        ),
         autosize=True
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("Philippine Instant 3-in-1 Coffee Price", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily standardized instant 3-in-1 coffee pricing across the Philippines.",
-                style={"color": "#555", "marginTop": 0}
+    return themed_card(
+        title="Philippine Instant 3-in-1 Coffee Price",
+        description="Daily standardized instant 3-in-1 coffee pricing across the Philippines.",
+        children=[
+            dcc.Graph(
+                id="philippine-coffee-price",
+                figure=fig,
+                style={"height": "460px"}
             ),
-            dcc.Graph(id="philippine-coffee-price", figure=fig, style={"height": "460px"}),
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -81,8 +73,8 @@ def layout():
                 ),
                 dcc.Download(id="download-coffee")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-coffee", "data"),

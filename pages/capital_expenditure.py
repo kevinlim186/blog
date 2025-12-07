@@ -41,25 +41,17 @@ def layout():
 
     fig.update_layout(
         **CHART_TEMPLATE,
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center"
-        )
     )
 
-    return html.Div([
-        themed_card([
-            html.H2("Inflation-Adjusted Capital Expenditures", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "8px"
-            }),
-            html.P(
-                "Industry-level capital expenditure trends adjusted for inflation, measured in billions.",
-                style={"color": "#9BA1A6", "marginTop": 0}
+    return themed_card(
+        title="Inflation-Adjusted Capital Expenditures",
+        description="Industry-level capital expenditure trends adjusted for inflation, measured in billions.",
+        children=[
+            dcc.Graph(
+                id="inflation-adjusted-capex-graph",
+                figure=fig,
+                style={"height": "460px"}
             ),
-            dcc.Graph(id="inflation-adjusted-capex-graph", figure=fig, style={"height": "460px"}),
             html.Div([
                 html.Button(
                     "Download CSV",
@@ -79,8 +71,8 @@ def layout():
                 ),
                 dcc.Download(id="download-inflation-adjusted-capex")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 @callback(
     Output("download-inflation-adjusted-capex", "data"),

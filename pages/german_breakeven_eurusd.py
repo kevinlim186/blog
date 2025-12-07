@@ -14,7 +14,7 @@ def layout():
         y=df['breakeven_inflation_spread'],
         name='Breakeven Inflation Spread (DE - US)',
         yaxis='y1',
-        line=dict(color='#00FF99', width=2.5),
+        line=dict(color=THEME_COLORS["primary"], width=2.5),
         hovertemplate='Breakeven Spread: %{y:.2f}%<br>Date: %{x|%Y-%m-%d}<extra></extra>'
     ))
 
@@ -24,7 +24,7 @@ def layout():
         y=df['real_return_spread'],
         name='Real Return Spread (DE - US)',
         yaxis='y1',
-        line=dict(color='#3399FF', width=2.5, dash='dash'),
+        line=dict(color=THEME_COLORS["secondary"], width=2.5, dash='dash'),
         hovertemplate='Real Return Spread: %{y:.2f}%<br>Date: %{x|%Y-%m-%d}<extra></extra>'
     ))
 
@@ -34,33 +34,22 @@ def layout():
         y=df['eur_usd_fx'],
         name='EUR/USD Exchange Rate',
         yaxis='y2',
-        line=dict(color='#FFCC00', width=2.5, dash='dot'),
+        line=dict(color=THEME_COLORS["accent"], width=2.5, dash='dot'),
         hovertemplate='EUR/USD: %{y:.4f}<br>Date: %{x|%Y-%m-%d}<extra></extra>'
     ))
 
     fig.update_layout(
-        title=dict(
-            text="Eurozone vs US: Bond Spreads and EUR/USD Exchange Rate",
-            x=0.01,
-            xanchor='left',
-            font=dict(size=22)
-        ),
-        template='plotly_dark',
-        plot_bgcolor='#111111',
-        paper_bgcolor='#111111',
-        font=dict(color='white', family='Arial'),
+        **CHART_TEMPLATE,
         height=500,
-        margin=dict(l=30, r=30, t=60, b=40),
-        hovermode='x unified',
         xaxis=dict(
             title='Date',
             tickformat="%Y-%m-%d",
             hoverformat="%Y-%m-%d",
-            gridcolor='#333'
+            gridcolor=THEME_COLORS["grid"]
         ),
         yaxis=dict(
             title='Bond Spread (%)',
-            gridcolor='#333'
+            gridcolor=THEME_COLORS["grid"]
         ),
         yaxis2=dict(
             title='EUR/USD Exchange Rate',
@@ -70,18 +59,16 @@ def layout():
             tickformat=".2f"
         ),
         hoverlabel=dict(namelength=-1),
-        legend=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.15,  # Push further down below x-axis labels
-            xanchor='center',
-            x=0.5,
-            font=dict(size=12)
-        ),
+
     )
 
-    return html.Div([
-        html.Div([
-            dcc.Graph(id="interpolated-yield-bond", figure=fig)
-        ], className="black-container")
-    ])
+    return themed_card(
+        title="Eurozone–US Yield Spreads & EUR/USD",
+        description="Breakeven and real yield spreads alongside EUR/USD.",
+        children=[
+            dcc.Graph(
+                id="interpolated-yield-bond",
+                figure=fig
+            )
+        ]
+    )

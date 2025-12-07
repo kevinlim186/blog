@@ -47,26 +47,12 @@ def layout():
             side="right",
             showgrid=False
         ),
-        legend=dict(
-            orientation="h",
-            y=-0.25,
-            x=0.5,
-            xanchor="center",
-        ),
         autosize=True
     )
-
-    return html.Div([
-        themed_card([
-            html.H2("Philippine Onion Prices", style={
-                "color": THEME_COLORS["text"],
-                "marginBottom": "6px"
-            }),
-            html.P(
-                "Daily standardized onion prices across the Philippines (375g).",
-                style={"color": "#555", "marginTop": 0}
-            ),
-
+    return themed_card(
+        title="Philippine Onion Prices",
+        description="Daily standardized onion prices across the Philippines (375g).",
+        children=[
             dcc.Graph(
                 id="philippine-onion-price",
                 figure=fig,
@@ -92,8 +78,8 @@ def layout():
                 ),
                 dcc.Download(id="download-onion")
             ], style={"textAlign": "right", "marginTop": "12px"})
-        ])
-    ])
+        ]
+    )
 
 
 @callback(
