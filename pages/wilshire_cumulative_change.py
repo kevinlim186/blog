@@ -78,15 +78,6 @@ def layout():
             gridcolor=THEME_COLORS["grid"]
         ),
 
-        legend=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.2,
-            xanchor='center',
-            x=0.5,
-            font=dict(size=12)
-        ),
-
         hoverlabel=dict(namelength=-1)
     )
 

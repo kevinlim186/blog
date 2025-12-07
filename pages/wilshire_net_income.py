@@ -86,15 +86,6 @@ def layout():
             range=[index_min - index_buffer, index_max + index_buffer]
         ),
 
-        legend=dict(
-            orientation='h',
-            yanchor='top',
-            y=-0.2,
-            xanchor='center',
-            x=0.5,
-            font=dict(size=12)
-        ),
-
         hoverlabel=dict(namelength=-1)
     )
     return themed_card(
