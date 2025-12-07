@@ -230,27 +230,39 @@ def api_router(pathname):
     extracted_title = ""
     extracted_desc = ""
 
-    # Extract title directly from fig (template-injected or layout-defined)
-    try:
-        if fig.layout.title and fig.layout.title.text:
-            extracted_title = fig.layout.title.text
-        else:
-            extracted_title = pathname.replace("-", " ").title()
-    except Exception:
-        extracted_title = pathname.replace("-", " ").title()
+    # Extract title
+    full_title_html = fig.layout.title.text
 
-    # Extract description from annotation injected by themed_card
-    try:
-        if fig.layout.annotations:
-            # Subtitle annotation should be in a known y-range
-            for ann in fig.layout.annotations:
-                if 1.05 <= ann.y <= 1.20:
-                    extracted_desc = ann.text
-                    break
-    except Exception:
-        pass
+    # --- Extract Title (before <br>) ---
+    extracted_title = full_title_html.split("<br>")[0].strip()
 
-    if not extracted_desc:
+    # --- Extract Description (inside <span>...</span>) ---
+    try:
+        # Get everything after <span ...>
+        span_block = full_title_html.split("<span")[1]
+
+        # Remove the leading attributes up to closing ">"
+        span_block = span_block.split(">", 1)[1]
+
+        # Remove closing </span>
+        span_block = span_block.replace("</span>", "")
+
+        # Replace <br> with space
+        span_block = span_block.replace("<br>", " ")
+
+        # Remove <b> tags
+        span_block = span_block.replace("<b>", "").replace("</b>", "")
+
+        # Remove the datasource line entirely
+        span_block = span_block.replace("Data provided by yellowplannet.com", "")
+
+        # Final clean text
+        extracted_desc = span_block.strip()
+
+    except Exception:
+        extracted_desc = ""
+
+    if extracted_desc is None:
         extracted_desc = ""
 
     if fig is None:

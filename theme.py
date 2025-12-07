@@ -65,6 +65,7 @@ def themed_card(children, title=None, description=None, style=None):
         annotations = existing.copy()
 
         if title:
+            extracted_desc = description if description else ""
             full_title = title
             if description:
                 full_title = (

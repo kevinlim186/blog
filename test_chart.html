@@ -7,10 +7,9 @@
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
 </head>
 <body>
-    <div id="chart-container"></div>
-
-    <script>
-        fetch("http://localhost:8050/api/us-companies-cashflow-tax")
+<div id="chart-container"></div>
+<script>
+        fetch("http://localhost:8050/api/german-inflation-real-return-spread-eurusd")
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById("chart-container");
