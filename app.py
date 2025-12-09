@@ -161,14 +161,15 @@ def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
         "@type": "Dataset",
         "name": f"Dataset for {title}",
         "description": description,
-        "url": f"https://visualization.yellowplannet.com/{pathname}", # Link to the main page/chart
+        "url": f"https://visualization.yellowplannet.com/{pathname}",
         "keywords": title.lower().split() + ["data", "chart", pathname],
+        "license": "https://spdx.org/licenses/MIT.html",
         "creator": {
             "@type": "Organization",
             "name": "YellowPlannet.com",
             "url": "http://yellowplannet.com"
         },
-        "spatialCoverage": "Global", # Generic setting, adjust if needed
+        "spatialCoverage": "Global",
         "distribution": {
             "@type": "DataDownload",
             "encodingFormat": data_format,
