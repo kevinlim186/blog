@@ -1150,3 +1150,200 @@ def philippine_sardines():
         order by date
         """
     return client.query_df(query)
+
+
+@cache.memoize()
+def fetch_philippine_sugar_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+                select 
+                    toDate(insert_date) dt,
+                    sku,
+                    market,
+                    price,
+                    multiIf(
+                    -- FRACTIONS like 1/2kg, 3/4 kg
+                    extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg') != '',
+                        (
+                            toFloat64(splitByChar('/', extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg'))[1])
+                            /
+                            toFloat64(splitByChar('/', extract(sku, '(?i)([0-9]+/[0-9]+)\\s*kg'))[2])
+                        ),
+                
+                    -- DECIMALS or WHOLE NUMBERS like 1kg, 1.5kg, 2.5kg
+                    extract(sku, '(?i)([0-9]+(?:[.,][0-9]+)?)\\s*kg') != '',
+                        toFloat64(replaceOne(
+                            extract(sku, '(?i)([0-9]+(?:[.,][0-9]+)?)\\s*kg'),
+                            ',',
+                            '.'
+                        )),
+                
+                    -- Default
+                    NULL
+                ) AS kilos, 
+                price/kilos standard_price
+                from default.input_raw_products 
+                where 
+                    main_category='groceries'
+                    and sku ilike '%sugar%' 
+                    and sku ilike '%refined%'   
+                    and (
+                        ( category ilike 'cooking%' and market='ever')
+                        or 
+                        ( market='sm supermarket' and category ilike '%pantry%')
+                        or 
+                        ( market='waltermart' and category ilike '%pantry%')
+                        ) 
+                    and kilos>0 
+                order by insert_date desc 
+                limit 1 by sku , dt, market 
+        ) 
+        select 
+                dt date, 
+                avg(standard_price) avg_price_per_kilo ,
+                median(standard_price) median_price,
+                uniq(sku, market) sampled_skus
+        from base
+        group by dt
+        order by dt
+        """
+    return client.query_df(query)
+
+
+
+@cache.memoize()
+def philippine_white_vingar_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+        select 	
+            toDate(insert_date) date,
+            sku, 
+            price, 
+            market, 
+            multiIf(
+        -- Case: "X L Y pcs" or "X L Ypcs"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*(\\d+)\\s*pcs'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs')),
+
+        -- Case: "X ml Y pcs" or "X ml Ypcs"
+        match(sku, '(\\d+)\\s*[mM][lL]\\s*(\\d+)\\s*pcs'),
+            (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs'))) / 1000,
+
+        -- Case: "X ml x Y" or "X ml x Ys"
+        match(sku, '(\\d+)\\s*[mM][lL]\\s*[xX]\\s*(\\d+)s?'),
+            (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)'))) / 1000,
+
+        -- Case: "X L x Y" or "X L x Ys"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*[xX]\\s*(\\d+)s?'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)')),
+
+        -- Case: range in ml (e.g. "200-250ml")
+        match(sku, '(\\d+)\\s*-\\s*(\\d+)\\s*[mM][lL]'),
+            ((toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 1)) +
+            toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 2))) / 2.0) / 1000,
+
+        -- Case: "X L"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')),
+
+        -- Case: "X ml"
+        match(sku, '(\\d+)\\s*[mM][lL]'),
+            toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) / 1000,
+
+        -- Else NULL
+        NULL
+                    ) AS volume_liters,
+            price/volume_liters price_per_liters
+        from default.input_raw_products
+        where 
+            main_category='groceries'
+            and sku ilike '%vinegar%'
+            and sku ilike '%white%'
+            and volume_liters is not null
+        order by insert_date desc
+        limit 1 by date, sku, market
+        )
+
+        select 
+            date, 
+            avg(price_per_liters) mean_price,
+            median(price_per_liters) median_price, 
+            uniq(sku, market) sampled_skus
+        from base
+        group by 
+            date
+        order by 
+            date
+        """
+    return client.query_df(query)
+
+
+
+@cache.memoize()
+def philippine_cane_vingar_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+        select 	
+            toDate(insert_date) date,
+            sku, 
+            price, 
+            market, 
+            multiIf(
+        -- Case: "X L Y pcs" or "X L Ypcs"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*(\\d+)\\s*pcs'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs')),
+
+        -- Case: "X ml Y pcs" or "X ml Ypcs"
+        match(sku, '(\\d+)\\s*[mM][lL]\\s*(\\d+)\\s*pcs'),
+            (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '(\\d+)\\s*pcs'))) / 1000,
+
+        -- Case: "X ml x Y" or "X ml x Ys"
+        match(sku, '(\\d+)\\s*[mM][lL]\\s*[xX]\\s*(\\d+)s?'),
+            (toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)'))) / 1000,
+
+        -- Case: "X L x Y" or "X L x Ys"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]\\s*[xX]\\s*(\\d+)s?'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')) * toInt32(extract(sku, '[xX]\\s*(\\d+)')),
+
+        -- Case: range in ml (e.g. "200-250ml")
+        match(sku, '(\\d+)\\s*-\\s*(\\d+)\\s*[mM][lL]'),
+            ((toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 1)) +
+            toFloat64(arrayElement(extractAll(sku, '(\\d+)'), 2))) / 2.0) / 1000,
+
+        -- Case: "X L"
+        match(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]'),
+            toFloat64(extract(sku, '(\\d+(?:\\.\\d+)?)\\s*[lL]')),
+
+        -- Case: "X ml"
+        match(sku, '(\\d+)\\s*[mM][lL]'),
+            toFloat64(extract(sku, '(\\d+)\\s*[mM][lL]')) / 1000,
+
+        -- Else NULL
+        NULL
+                    ) AS volume_liters,
+            price/volume_liters price_per_liters
+        from default.input_raw_products
+        where 
+            main_category='groceries'
+            and sku ilike '%vinegar%'
+            and sku ilike '%cane%'
+            and volume_liters is not null
+        order by insert_date desc
+        limit 1 by date, sku, market
+        )
+
+        select 
+            date, 
+            avg(price_per_liters) mean_price,
+            median(price_per_liters) median_price, 
+            uniq(sku, market) sampled_skus
+        from base
+        group by 
+            date
+        order by 
+            date
+        """
+    return client.query_df(query)

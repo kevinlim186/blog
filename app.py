@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price, philippine_sugar_price, philippine_detergent_powder, philippine_sardines, philippine_milk_alternative
+from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price, philippine_sugar_price, philippine_detergent_powder, philippine_sardines, philippine_milk_alternative, philippine_vinegar_white, philippine_vinegar_cane
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -11,6 +11,7 @@ from flask_cors import CORS
 from utils.utility import find_graph
 import data.queries as dq
 import json
+import re
 
 app = Dash(__name__,  suppress_callback_exceptions=True)
 CORS(app.server)
@@ -46,6 +47,8 @@ PAGE_LAYOUTS = {
     "philippine-sugar-history": philippine_sugar_price,
     "philippine-detergent-powder": philippine_detergent_powder,
     "philippine-sardines": philippine_sardines,
+    "philippine-white-vinegar": philippine_vinegar_white,
+    "philippine-cane-vinegar": philippine_vinegar_cane,
 }
 
 # Same mapping for API figure extraction
@@ -231,7 +234,7 @@ def api_router(pathname):
     spatial_coverage = meta_data.get('spatial_coverage')
     url = meta_data.get('url')
 
-    fig = find_graph(layout)
+    fig = find_graph(layout) # Assuming find_graph returns the plotly.graph_objects.Figure
 
     extracted_title = ""
     extracted_desc = ""
@@ -273,6 +276,35 @@ def api_router(pathname):
 
     if fig is None:
         return Response(f"No figure found for {pathname}", status=404)
+    
+    # --- START HIGH-RES CONFIGURATION & DYNAMIC FILENAME ---
+
+    # 1. Generate sanitized filename
+    filename_base = 'high_res_export'
+    if extracted_title:
+        base_title = extracted_title
+        filename_base = re.sub(r'[^\w\s-]', '', base_title).strip().replace(' ', '_').replace('-', '_').lower()
+        if not filename_base:
+            filename_base = 'chart_export'
+    
+    filename = f"{filename_base}_yellowplannet"
+    
+    plotly_config = {
+        'responsive': True, # Keep responsiveness
+        'displaylogo': False, # Recommended
+        'toImageButtonOptions': {
+            'format': 'png',
+            'filename': filename,
+            'height': 590,  # 
+            'width': 1050,   # 
+            'scale': 5
+        }
+    }
+
+    # Use json.dumps to convert the Python dict to a string suitable for JS
+    config_json_str = json.dumps(plotly_config)
+
+    # --- END CONFIGURATION ---
 
     figure_json = fig.to_json()
 
@@ -338,7 +370,8 @@ def api_router(pathname):
         {table_html}
 
         <script>
-            Plotly.newPlot("{div_id}", {figure_json}.data, {figure_json}.layout, {{responsive: true}});
+            // The FIX: Pass the config_json_str as the 4th argument to Plotly.newPlot
+            Plotly.newPlot("{div_id}", {figure_json}.data, {figure_json}.layout, {config_json_str});
 
             // Add window resize listener for responsiveness
             window.addEventListener('resize', () => {{
@@ -351,6 +384,7 @@ def api_router(pathname):
         """
 
     return Response(embed_html, mimetype="text/html")
+
 
 @app.server.route("/api/<pathname>/data")
 def api_data(pathname):
