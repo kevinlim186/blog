@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chart Test</title>
-    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-basic-2.33.0.min.js"></script>
 </head>
 <body>
 <div id="chart-container"></div>
 <script>
-        fetch("http://localhost:8050/api/german-inflation-real-return-spread-eurusd")
+        fetch("http://localhost:8050/api/capital-expenditure")
                 .then(r => r.text())
                 .then(html => {
                     const container = document.getElementById("chart-container");

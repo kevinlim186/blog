@@ -134,3 +134,13 @@ def get_data():
     }
     df['category'] = df['category'].map(rename_map).fillna(df['category'])
     return df
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/average-cash-flow-to-debt-ratio-by-industry/'
+
+    return res 

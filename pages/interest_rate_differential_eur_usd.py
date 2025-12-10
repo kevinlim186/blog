@@ -93,3 +93,15 @@ def get_data():
     df = df[['date', 'us_ten_year_interest', 'interpolated_yield_bond']]
     df = df.sort_values(by='date') 
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Germany" },
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/interest-rate-gaps-a-key-driver-of-eur-usd-trends/'
+
+    return res 

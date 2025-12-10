@@ -110,3 +110,14 @@ def get_data():
     df = df[(df['year'] >= 2010) & (df['category'] != 'Crypto Assets')]
     df['capital_expenditure_b'] = df['inflation_adjusted_capital_expenditure'] / 1e9  
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/capital-expenditures-by-industry-a-decade-of-shifting-investment-strategies/'
+
+    return res 

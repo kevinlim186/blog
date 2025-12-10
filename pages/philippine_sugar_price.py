@@ -91,3 +91,14 @@ def download_sugar_data(n_clicks):
 def get_data():
     df = fetch_philippine_sugar_prices()
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-white-sugar-price-trends/'
+
+    return res 

@@ -72,3 +72,15 @@ def layout():
             )
         ]
     )
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Germany" },
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/german-10-year-real-yield-inflation-linked-bund-constant-maturity/'
+
+    return res 

@@ -102,3 +102,13 @@ def download_noodle_data(n_clicks):
 def get_data():
     df = philippine_instant_noodles_price()
     return df
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-instant-noodles-price-trends/'
+
+    return res 

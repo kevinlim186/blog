@@ -66,3 +66,13 @@ def get_data():
     df = df[[ 'date', 'interpolated_yield_bond']]
     df = df.sort_values(by='date') 
     return df
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Germany" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/germany-10-year-bund-yield-constant-maturity/'
+
+    return res 

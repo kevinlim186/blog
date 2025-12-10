@@ -98,3 +98,13 @@ def download_onion_data(n_clicks):
 
 def get_data():
     return fetch_philippine_onion()
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-onion-sibuyas-price-trends/'
+
+    return res 

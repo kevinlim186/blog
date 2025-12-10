@@ -92,3 +92,14 @@ def download_coffee_data(n_clicks):
 def get_data():
     df = philippine_instant_3_in_1_coffee_price()
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-3-in-1-instant-coffee-price-trends/'
+
+    return res 

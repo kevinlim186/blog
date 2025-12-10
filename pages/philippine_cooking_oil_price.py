@@ -104,3 +104,14 @@ def download_oil_data(n_clicks):
 def get_data():
     df = philippine_cooking_oil()
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-cooking-oil-price-trends/'
+
+    return res 

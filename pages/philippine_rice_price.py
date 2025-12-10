@@ -87,3 +87,13 @@ def download_rice_data(n_clicks):
 def get_data():
     df = fetch_philippine_rice_prices()
     return df
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-rice-price-history/'
+
+    return res 

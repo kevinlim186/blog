@@ -69,3 +69,15 @@ def get_data():
     df = df[[ 'date', 'interpolated_yield_tips']]
     df = df.sort_values(by='date') 
     return df
+
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Germany" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/german-10-year-real-yield-inflation-linked-bund-constant-maturity/'
+
+    return res 

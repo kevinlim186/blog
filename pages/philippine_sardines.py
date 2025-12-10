@@ -102,3 +102,14 @@ def download_sardines_data(n_clicks):
 def get_data():
     df = philippine_sardines()
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-sardines-price-trends'
+
+    return res 

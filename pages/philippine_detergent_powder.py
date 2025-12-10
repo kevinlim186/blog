@@ -102,3 +102,14 @@ def download_detergent_data(n_clicks):
 def get_data():
     df = philippine_detergent_powder()
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-detergent-powder-price-trends/'
+
+    return res 

@@ -100,3 +100,13 @@ def download_egg_data(n_clicks):
 def get_data():
     df = fetch_philippine_egg_prices()
     return df
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-egg-price-history/'
+
+    return res 

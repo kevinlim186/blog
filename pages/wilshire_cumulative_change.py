@@ -88,3 +88,14 @@ def layout():
         title="Cumulative Change: Wilshire 5000 vs Corporate America Net Income",
         description="A comparison of long-term cumulative performance between U.S. corporate net income and the Wilshire 5000 index."
     )
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/wilshire-5000-companies-net-income/'
+
+    return res 

@@ -94,3 +94,13 @@ def download_alt_milk_data(n_clicks):
 def get_data():
     df = fetch_philippine_milk_prices()
     return df[df["category"] != "Cow Milk"]
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Philippines" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/philippine-fresh-milk-plant-based-alternatives-price-trends/'
+
+    return res 

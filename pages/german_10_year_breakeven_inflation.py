@@ -71,3 +71,14 @@ def get_data():
     df = df[[ 'date', 'interpolated_german_breakeven_inflation']]
     df = df.sort_values(by='date') 
     return df
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "Germany" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/german-10-year-breakeven-inflation/'
+
+    return res 

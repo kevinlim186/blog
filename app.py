@@ -141,7 +141,7 @@ def generate_invisible_data_table(raw_data, pathname):
     """
     return table_html
 
-def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
+def get_schema_org_jsonld(pathname, title, description, columns, date_modified, url, spatial_coverage):
     """
     Generates the JSON-LD script tag for Schema.org Dataset annotation.
     
@@ -161,7 +161,7 @@ def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
         "@type": "Dataset",
         "name": f"Dataset for {title}",
         "description": description,
-        "url": f"https://visualization.yellowplannet.com/{pathname}",
+        "url": url,
         "keywords": title.lower().split() + ["data", "chart", pathname],
         "license": "https://spdx.org/licenses/MIT.html",
         "creator": {
@@ -169,7 +169,7 @@ def get_schema_org_jsonld(pathname, title, description, columns, date_modified):
             "name": "YellowPlannet.com",
             "url": "http://yellowplannet.com"
         },
-        "spatialCoverage": "Global",
+        "spatialCoverage": spatial_coverage,
         "distribution": {
             "@type": "DataDownload",
             "encodingFormat": data_format,
@@ -226,6 +226,11 @@ def api_router(pathname):
         return Response(f"Unknown API endpoint: {pathname}", status=404)
 
     layout = API_FIGURES[pathname].layout()
+    meta_data = API_FIGURES[pathname].get_meta_data()
+
+    spatial_coverage = meta_data.get('spatial_coverage')
+    url = meta_data.get('url')
+
     fig = find_graph(layout)
 
     extracted_title = ""
@@ -280,7 +285,9 @@ def api_router(pathname):
         extracted_title, 
         extracted_desc, 
         columns, 
-        date_modified
+        date_modified,
+        url,
+        spatial_coverage
     )
     # --- END Preparation ---
 

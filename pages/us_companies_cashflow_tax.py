@@ -167,3 +167,14 @@ def get_data():
 
     df_combined = pd.concat([df_cash, df_tax], ignore_index=True)
     return df_combined
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/u-s-public-company-tax-rates-and-cash-flow-insights-by-industry/'
+
+    return res 

@@ -92,3 +92,14 @@ def layout():
             )
         ]
     )
+
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/interest-rate-sensitive-stocks/'
+
+    return res 

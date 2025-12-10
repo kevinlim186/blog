@@ -95,3 +95,13 @@ def layout():
             dcc.Graph(id="wilshire-vs-net-income", figure=fig)
         ]
     )
+
+def get_meta_data():
+    res = {}
+    res['spatial_coverage'] =[
+        { "@type": "Place", "name": "United States" },
+        ]
+    
+    res['url'] = 'https://yellowplannet.com/wilshire-5000-companies-net-income/'
+
+    return res 
