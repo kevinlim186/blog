@@ -1333,7 +1333,7 @@ def philippine_garlic_prices():
         from default.input_raw_products
         where 
             main_category='groceries'
-            and sku ilike '%garlic%'
+            and (sku ilike '%garlic%' or  sku ilike '%bawang%')
             and category ilike '%fresh%'
             and grams is not null 
         limit 1 by td,  sku, market 
