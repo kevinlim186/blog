@@ -1094,39 +1094,7 @@ def philippine_sardines():
                 sku, 
                 market,
 
-                /* ✅ extract qty from patterns like 6+1, 3+2pcs */
-                case 
-                    when market='ever' then toInt64OrNull(regexpExtract(sku, '(?i)(?:^|[^0-9])(\\d+)x\\s*(\\d+)\\s*(g|gr)', 1))
-                else 
-                    (
-                        toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*\\+\\s*(\\d+)', 1)) +
-                        toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*\\+\\s*(\\d+)', 2))
-                    ) end AS qty_plus,
-
-                /* ✅ extract simple multipliers: x6, 6x, 6pcs, 6s */
-                coalesce(
-                    toInt64OrNull(regexpExtract(sku, '(?i)\\b(\\d+)\\s*x\\b', 1)),
-                    toInt64OrNull(regexpExtract(sku, '(?i)x\\s*(\\d+)', 1)),
-                    toInt64OrNull(regexpExtract(sku, '(?i)(\\d+)\\s*(pcs|s)\\b', 1)),
-                    1
-                ) AS qty_simple,
-
-                /* ✅ base quantity = qty_plus fallback qty_simple */
-                coalesce(qty_plus, qty_simple, 1) AS qty,
-
-                /* ✅ base grams */
-                multiIf(
-                    match(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*kg'),
-                        toFloat64(extract(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*kg')) * 1000.0,
-
-                    match(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*(g|gr)'),
-                        toFloat64(extract(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s*(g|gr)')),
-
-                    NULL
-                ) AS grams,
-
-                /* ✅ final total weight, rounded */
-                round(grams * toFloat64(qty)) AS total_grams,
+                calc_total_grams(sku, market) AS total_grams,
 
                 price / total_grams AS price_per_gram
 
@@ -1345,5 +1313,39 @@ def philippine_cane_vingar_prices():
             date
         order by 
             date
+        """
+    return client.query_df(query)
+
+
+
+
+@cache.memoize()
+def philippine_garlic_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+        select  
+            toDate(insert_date) td, 
+            sku,
+            market, 
+            calc_total_grams(sku, market) grams, 
+            price/grams price_per_gram
+        from default.input_raw_products
+        where 
+            main_category='groceries'
+            and sku ilike '%garlic%'
+            and category ilike '%fresh%'
+            and grams is not null 
+        limit 1 by td,  sku, market 
+        )
+
+        select 
+            td date, 
+            uniq(sku, market) sampled_skus,
+            avg(price_per_gram * 375) avg_price, 
+            median(price_per_gram * 375) median_price
+        from base 
+        group by date
+        order by date
         """
     return client.query_df(query)

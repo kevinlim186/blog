@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, callback
-from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price, philippine_sugar_price, philippine_detergent_powder, philippine_sardines, philippine_milk_alternative, philippine_vinegar_white, philippine_vinegar_cane
+from pages import commitment_of_traders_eur_forcast, german_10_year_breakeven_inflation, german_10_year_inflation_protected_rate,german_10_year_bonds, german_breakeven_eurusd, philippine_instant_3_in_1_coffee_price,telecom_interest_sensitive_stock, wilshire_cumulative_change, wilshire_net_income, us_companies_cashflow_tax, capital_expenditure, interest_rate_differential_eur_usd, free_cash_flow_to_debt, commitment_of_traders, philippine_rice_price, philippine_egg_price, philippine_milk_price, philippine_instant_noodles_price, philippine_cooking_oil_price, philippine_onion_price, philippine_sugar_price, philippine_detergent_powder, philippine_sardines, philippine_milk_alternative, philippine_vinegar_white, philippine_vinegar_cane, philippine_garlic_price
 from cache import cache
 from flask import request
 import data.queries as dq
@@ -49,6 +49,7 @@ PAGE_LAYOUTS = {
     "philippine-sardines": philippine_sardines,
     "philippine-white-vinegar": philippine_vinegar_white,
     "philippine-cane-vinegar": philippine_vinegar_cane,
+    "philippine-garlic-price": philippine_garlic_price,
 }
 
 # Same mapping for API figure extraction
