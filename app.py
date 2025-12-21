@@ -393,8 +393,8 @@ def api_data(pathname):
         return Response(f"Unknown dataset: {pathname}", status=404)
 
     module = PAGE_LAYOUTS[pathname]
-    if not hasattr(module, "get_data"):
-        return Response(f"Page '{pathname}' has no get_data() function.", status=400)
+    # if not hasattr(module, "get_data"):
+    #     return Response(f"Page '{pathname}' has no get_data() function.", status=400)
 
     df = module.get_data()
     csv_bytes = df.to_csv(index=False)
