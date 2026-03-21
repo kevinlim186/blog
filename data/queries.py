@@ -567,6 +567,7 @@ def fetch_philippine_rice_prices():
             price,
             case 
             	when market='ever' then toFloat32OrZero(extract(sku, 's*(\\d+(\\.\\d+)?)kg')) 
+                when market='landmark' then toFloat32OrZero(extract(sku, '(\d+)\s*kg')) 
             	else toFloat32OrZero(extract(sku, '\\|\\s*(\\d+(\\.\\d+)?)kg')) 
             end AS kilos
         from input_raw_products 
@@ -602,6 +603,7 @@ def fetch_philippine_egg_prices():
             price,
             case 	
             	when market='ever' then toInt32OrZero(extract(sku, '(\\d+)')) 
+                when market='landmark' then toInt32OrZero(extract(sku, '(\d+)\s*s'))
             	else toInt32OrZero(extract(sku, '\\|\\s*(\\d+)'))
             end   AS pcs
         from input_raw_products 
@@ -840,7 +842,7 @@ def philippine_cooking_oil():
         FROM default.input_raw_products
         WHERE main_category='groceries'
         AND sku ILIKE '%oil%'
-        AND category ILIKE '%cooking%'
+        AND ( category ILIKE '%cooking%' or (market='landmark' and category ilike '%Shortening > Pantry%'))
         and unit in ('ml', 'l')
         order by insert_date desc 
         limit 1 by date, sku, market )
@@ -872,10 +874,12 @@ def fetch_philippine_onion():
             END AS min_qty,
             -- max_qty
             CASE
+                when market='landmark' then 1000
                 WHEN isKg THEN 1000 * if(kg_val = 0, 1, kg_val)
                 ELSE g_right
             END AS max_qty, 
             case 
+                when market='landmark' then 1000
             	when min_qty = 0 and max_qty!=0 then max_qty
             	when min_qty != 0 and max_qty=0 then min_qty
             	else  (min_qty+max_qty)/2 
@@ -891,7 +895,9 @@ def fetch_philippine_onion():
             		(category ilike '%fresh%' and category ilike '%vegetable%')
             		or 
             		(category ilike '%fresh%' and market='ever')
-            	)
+                    or
+                    (category ILIKE '%Fresh Vegetables%' AND market = 'landmark')
+		    )
             and sku not ilike '%leeks%'
             and sku not ilike '%leave%'
             and sku not ilike '%spring%'
@@ -952,10 +958,8 @@ def fetch_philippine_sugar_prices():
                     and sku ilike '%refined%'   
                     and (
                         ( category ilike 'cooking%' and market='ever')
-                        or 
-                        ( market='sm supermarket' and category ilike '%pantry%')
-                        or 
-                        ( market='waltermart' and category ilike '%pantry%')
+                         or 
+                        ( market in ('waltermart','sm supermarket','landmark') and category ilike '%pantry%')
                         ) 
                     and kilos>0 
                 order by insert_date desc 
@@ -1159,9 +1163,7 @@ def fetch_philippine_sugar_prices():
                     and (
                         ( category ilike 'cooking%' and market='ever')
                         or 
-                        ( market='sm supermarket' and category ilike '%pantry%')
-                        or 
-                        ( market='waltermart' and category ilike '%pantry%')
+                         ( market in ('waltermart','sm supermarket','landmark') and category ilike '%pantry%')
                         ) 
                     and kilos>0 
                 order by insert_date desc 
@@ -1328,13 +1330,13 @@ def philippine_garlic_prices():
             toDate(insert_date) td, 
             sku,
             market, 
-            calc_total_grams(sku, market) grams, 
+            case when market='landmark' then 1000 else calc_total_grams(sku, market) end grams,
             price/grams price_per_gram
         from default.input_raw_products
         where 
             main_category='groceries'
             and (sku ilike '%garlic%' or  sku ilike '%bawang%')
-            and category ilike '%fresh%'
+            and (category ilike '%fresh%' or (market='landmark' and category ilike '%Vegetables%'))
             and grams is not null 
         limit 1 by td,  sku, market 
         )
