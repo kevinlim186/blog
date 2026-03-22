@@ -779,14 +779,10 @@ def philippine_instant_3_in_1_coffee_price():
               select  
                 toDate(insert_date) date,
                 sku, 
-                toFloat32OrZero(extract(sku, '(\\d+)\\s?g')) AS weight,
+                toFloat32OrZero(extract(sku, '(?i)(\\d+(?:\\.\\d+)?)\\s?g')) AS weight,
                 coalesce(
-                    toFloat32OrNull(
-                        extract(
-                            sku,
-                            '\\|[^|]*?\\d+\\s?g[^0-9]*(\\d+)\\s?(?:[pP][cC][sS]?|[sS](?:achet|s)?|pack|Pack)?'
-                        )
-                    ),
+                    toFloat32OrNull(extract(sku, '(?i)(?:^|\\s)[x*]\\s*(\\d+)')),
+                    toFloat32OrNull(extract(sku, '(?i)(\\d+)\\s*(?:pcs?|sachets?|packs?|pk|s\\b)')),
                     1
                 ) AS quantity,
                 price 
