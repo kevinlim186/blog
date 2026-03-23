@@ -558,7 +558,7 @@ def fetch_commitment_of_traders():
 @cache.memoize()
 def fetch_philippine_rice_prices():
     client = get_clickhouse_client()
-    query = """
+    query = r"""
     with base as (
         select 
             toDate(insert_date) dt,
@@ -594,7 +594,7 @@ def fetch_philippine_rice_prices():
 @cache.memoize()
 def fetch_philippine_egg_prices():
     client = get_clickhouse_client()
-    query = """
+    query = r"""
     with base as (
         select 
             toDate(insert_date) dt,
@@ -791,6 +791,7 @@ def philippine_instant_3_in_1_coffee_price():
             and (lower(category) like '%coffee%' or (category='Beverages' and market='ever'))
             and  match(sku, '\\b[0-9]+\\s?g\\b')
             and  match(sku, '\\b[Cc]offee\\b')
+            and market!='landmark' 
 			and match(sku, '(?i)3[[:space:][:punct:]]*(in)?[[:space:][:punct:]]*1')
             and sku !='San Mig 3-in-1 Coffee Mix Original 20g | 30s'
             and sku not ilike '%creamer%'
