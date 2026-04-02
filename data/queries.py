@@ -1348,3 +1348,35 @@ def philippine_garlic_prices():
         order by date
         """
     return client.query_df(query)
+
+
+
+@cache.memoize()
+def philippine_pork_belly_prices():
+    client = get_clickhouse_client()
+    query = r"""
+        with base as (
+                select  
+                    toDate(insert_date) td, 
+                    sku,
+                    market, 
+                    case when market='landmark' then 1000 else calc_total_grams(sku, market) end grams,
+                    price/grams price_per_gram
+                from default.input_raw_products
+                where 
+                    main_category='groceries'
+                    and (sku ilike '%pork belly%')
+                    and grams is not null 
+                limit 100 by td,  sku, market 
+                )
+
+                select 
+                    td date, 
+                    uniq(sku, market) sampled_skus,
+                    avg(price_per_gram * 1000) avg_price, 
+                    median(price_per_gram * 1000) median_price
+                from base 
+                group by date
+                order by date
+        """
+    return client.query_df(query)
