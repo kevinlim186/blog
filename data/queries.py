@@ -1367,7 +1367,7 @@ def philippine_pork_belly_prices():
                     main_category='groceries'
                     and (sku ilike '%pork belly%')
                     and grams is not null 
-                limit 100 by td,  sku, market 
+                limit 1 by td,  sku, market 
                 )
 
                 select 
