@@ -314,20 +314,21 @@ def api_router(pathname):
     table_html = generate_invisible_data_table(raw_data, pathname) 
     columns = list(raw_data.keys()) if raw_data else []
     date_modified = datetime.now().isoformat() 
-    # json_ld_annotation = get_schema_org_jsonld(
-    #     pathname, 
-    #     extracted_title, 
-    #     extracted_desc, 
-    #     columns, 
-    #     date_modified,
-    #     url,
-    #     spatial_coverage
-    # )
-    # --- END Preparation ---
+    json_ld_annotation = get_schema_org_jsonld(
+        pathname, 
+        extracted_title, 
+        extracted_desc, 
+        columns, 
+        date_modified,
+        url,
+        spatial_coverage
+    )
+
 
     # Build embeddable HTML block
     embed_html = f"""
-        
+        {json_ld_annotation}
+
         <div style='
             background: white;
             border-radius: 10px;
